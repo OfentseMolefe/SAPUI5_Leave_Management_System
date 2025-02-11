@@ -1,0 +1,21 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc"
+          xmlns="sap.m"
+          controllerName="com.emls.controller.MainView">
+    <Page enableScrolling="false" class="backgroundImage">
+        <content>
+            <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMarginTopBottom">
+                <Title class = "heading" text="Leave Management System" level="H1"/>
+                <Text  text="Please log in to access the Employee Leave Management System. Click the 'Log In' button below, select your role, and enter your credentials." 
+                      textAlign="Center"
+                      class="sapUiSmallMargin"/>
+                
+                <HBox justifyContent="Center" class="sapUiSmallMarginTop">
+                    <Button text="Log In" 
+                            press="onApplyLeavePress" 
+                            icon="sap-icon://customer"
+                            class="applyButton"/>
+                </HBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

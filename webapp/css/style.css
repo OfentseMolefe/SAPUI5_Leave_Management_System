@@ -1,0 +1,28 @@
+.applyButton {
+    background-color: #007bff; /* Blue */
+    color: white;
+    margin-right: 20px;
+    margin-top: 20px;
+    padding: 30px 90px;
+    opacity: 0.8;
+    border-radius: 5px;
+}
+.heading{
+    font-size: xx-large;
+    font-weight: bold;
+    margin-top: 250px;
+    margin-bottom: 30px;
+
+}
+
+.backgroundImage {
+    background-image: url("../assets/hr.jpg");  
+    background-size: cover;
+    background-position: center;
+   
+}
+.sapMPage {
+
+    background-size: cover !important;
+    background-position: center !important;
+}

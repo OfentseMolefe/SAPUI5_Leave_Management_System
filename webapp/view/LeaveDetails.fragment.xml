@@ -1,0 +1,15 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog title="Leave Details">
+        <VBox class="sapUiSmallMargin">
+            <Label text="Status" />
+            <Text id="detailStatus" />
+            <Label text="Admin Remarks" />
+            <Text id="adminRemarks" />
+        </VBox>
+        <buttons>
+            <Button text="Close" press="onCloseLeaveDetails" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

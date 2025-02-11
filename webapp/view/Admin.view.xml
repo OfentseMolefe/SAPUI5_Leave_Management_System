@@ -1,0 +1,134 @@
+<mvc:View
+    controllerName="com.emls.controller.Admin"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:f="sap.f"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    displayBlock="true"
+    height="100%">
+    
+    <SplitApp id="splitApp">
+        <masterPages>
+            <Page id="master" title="Admin Menu" backgroundDesign="Transparent">
+                <content>
+                    <List>
+                        <StandardListItem title="Dashboard" type="Active" press="onDashboard" icon="sap-icon://home" />
+                        <StandardListItem title="Department" type="Active" press="onToggleDepartmentSubmenu" icon="sap-icon://org-chart">
+                            <customData>
+                                <core:CustomData key="submenu" value="department" />
+                            </customData>
+                        </StandardListItem>
+                        <StandardListItem title="Add New Department" type="Active" press="onAddDepartment" icon="sap-icon://add" visible="false" class="submenuItem department" />
+                        <StandardListItem title="Manage Departments" type="Active" press="onManageDepartments" icon="sap-icon://edit" visible="false" class="submenuItem department" />
+                        <StandardListItem title="Employees" type="Active" press="onToggleEmployeeSubmenu" icon="sap-icon://employee">
+                            <customData>
+                                <core:CustomData key="submenu" value="employee" />
+                            </customData>
+                        </StandardListItem>
+                        <StandardListItem title="Add New Employee" type="Active" press="onAddEmployee" icon="sap-icon://add" visible="false" class="submenuItem employee" />
+                        <StandardListItem title="Manage Employees" type="Active" press="onManageEmployees" icon="sap-icon://edit" visible="false" class="submenuItem employee" />
+                        <StandardListItem title="Log Out" type="Active" press="onLogOut" icon="sap-icon://log" />
+                    </List>
+                </content>
+            </Page>
+        </masterPages>
+        <detailPages>
+            <Page id="detail" showHeader="false">
+                <f:DynamicPage headerExpanded="false" toggleHeaderOnTitleClick="false">
+                    <!-- Page Title -->
+                    <f:title>
+                        <f:DynamicPageTitle>
+                            <f:heading>
+                                <Title text="Admin Dashboard - Leave Management System"/>
+                            </f:heading>
+                            <f:actions>
+                                <SearchField width="300px" placeholder="Search Leave Requests..." liveChange=".onSearch"/>
+                                <Button text="Filters" icon="sap-icon://filter" type="Transparent"/>
+                                <Button text="Clear Filters" icon="sap-icon://clear-filter" type="Transparent"/>
+                            </f:actions>
+                        </f:DynamicPageTitle>
+                    </f:title>
+
+                    <!-- Page Content -->
+                    <f:content>
+                        <FlexBox width="100%" wrap="Wrap" class="sapUiSmallMargin">
+                            <!-- New Requests Column -->
+                            <VBox width="300px" class="sapUiSmallMarginEnd">
+                                <HBox justifyContent="SpaceBetween">
+                                    <Title text="New Requests" level="H2"/>
+                                    <ObjectNumber number="{/NewRequests.length}" state="Information"/>
+                                </HBox>
+                                <List items="{/NewRequests}" noDataText="No New Requests">
+                                    <CustomListItem>
+                                        <VBox class="sapUiSmallMargin">
+                                            <Text text="Employee: {employeeName}"/>
+                                            <Text text="Leave Type: {leaveType}"/>
+                                            <Text text="Duration: {duration} Days"/>
+                                            <Text text="From: {startDate} - To: {endDate}"/>
+                                            <HBox justifyContent="End">
+                                                <Button icon="sap-icon://accept" type="Accept" press=".onApproveLeave"/>
+                                                <Button icon="sap-icon://decline" type="Reject" press=".onRejectLeave"/>
+                                            </HBox>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                            </VBox>
+
+                            <!-- Pending Requests Column -->
+                            <VBox width="300px" class="sapUiSmallMarginEnd">
+                                <HBox justifyContent="SpaceBetween">
+                                    <Title text="Pending Requests" level="H2"/>
+                                    <ObjectNumber number="{/PendingRequests.length}" state="Warning"/>
+                                </HBox>
+                                <List items="{/PendingRequests}" noDataText="No Pending Requests">
+                                    <CustomListItem>
+                                        <VBox class="sapUiSmallMargin">
+                                            <Text text="Employee: {employeeName}"/>
+                                            <Text text="Leave Type: {leaveType}"/>
+                                            <ProgressIndicator percentValue="{progress}" displayValue="{progress}%" state="Warning"/>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                            </VBox>
+
+                            <!-- Approved Requests Column -->
+                            <VBox width="300px" class="sapUiSmallMarginEnd">
+                                <HBox justifyContent="SpaceBetween">
+                                    <Title text="Approved Requests" level="H2"/>
+                                    <ObjectNumber number="{/ApprovedRequests.length}" state="Success"/>
+                                </HBox>
+                                <List items="{/ApprovedRequests}" noDataText="No Approved Requests">
+                                    <CustomListItem>
+                                        <VBox class="sapUiSmallMargin">
+                                            <Text text="Employee: {employeeName}"/>
+                                            <Text text="Leave Type: {leaveType}"/>
+                                            <ObjectStatus text="Approved" state="Success"/>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                            </VBox>
+
+                            <!-- Rejected Requests Column -->
+                            <VBox width="300px">
+                                <HBox justifyContent="SpaceBetween">
+                                    <Title text="Rejected Requests" level="H2"/>
+                                    <ObjectNumber number="{/RejectedRequests.length}" state="Error"/>
+                                </HBox>
+                                <List items="{/RejectedRequests}" noDataText="No Rejected Requests">
+                                    <CustomListItem>
+                                        <VBox class="sapUiSmallMargin">
+                                            <Text text="Employee: {employeeName}"/>
+                                            <Text text="Leave Type: {leaveType}"/>
+                                            <ObjectStatus text="Rejected" state="Error"/>
+                                        </VBox>
+                                    </CustomListItem>
+                                </List>
+                            </VBox>
+                        </FlexBox>
+                    </f:content>
+                </f:DynamicPage>
+            </Page>
+        </detailPages>
+    </SplitApp>
+</mvc:View>

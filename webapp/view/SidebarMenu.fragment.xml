@@ -1,0 +1,15 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog title="Menu" contentWidth="250px">
+        <List>
+            <StandardListItem title="My Profile" type="Active" press="onMyProfile" />
+            <StandardListItem title="Change Password" type="Active" press="onChangePassword" />
+            <StandardListItem title="View Calendar" type="Active" press="onViewCalendar" />
+            <StandardListItem title="Log Out" type="Active" press="onLogOut" />
+        </List>
+        <buttons>
+            <Button text="Close" press="onCloseMenu" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

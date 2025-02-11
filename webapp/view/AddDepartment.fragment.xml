@@ -1,0 +1,21 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form">
+    <Dialog title="Add New Department">
+        <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+            <f:content>
+                <Label text="Department Code" required="true" />
+                <Input id="deptCode" />
+                <Label text="Department Name" required="true" />
+                <Input id="deptName" />
+                <Label text="Department Short Name" required="true" />
+                <Input id="deptShortName" />
+            </f:content>
+        </f:SimpleForm>
+        <buttons>
+            <Button text="Save" press="onSaveDepartment" type="Emphasized" />
+            <Button text="Cancel" press="onCancelAddDepartment" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

@@ -1,0 +1,58 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.f"
+    xmlns:card="sap.f.cards"
+    xmlns:l="sap.ui.layout"
+    controllerName="com.emls.controller.Apply"
+    displayBlock="true">
+    
+    <SplitApp id="splitApp">
+        <masterPages>
+            <Page id="master" title="Menu" backgroundDesign="Transparent">
+                <content>
+                    <List>
+                        <StandardListItem title="My Profile" type="Active" press="onMyProfile" icon="sap-icon://employee" />
+                        <StandardListItem title="Change Password" type="Active" press="onChangePassword" icon="sap-icon://key" />
+                        <StandardListItem title="View Calendar" type="Active" press="onViewCalendar" icon="sap-icon://calendar" />
+                        <StandardListItem title="Log Out" type="Active" press="onLogOut" icon="sap-icon://log" />
+                    </List>
+                </content>
+            </Page>
+        </masterPages>
+        <detailPages>
+            <Page id="detail" title="Leave Management" backgroundDesign="Transparent">
+                <content>
+                    <FlexBox
+                        alignItems="Start"
+                        justifyContent="SpaceBetween"
+                        wrap="Wrap"
+                        class="sapUiSmallMargin">
+                        <f:Card width="20rem" height="10rem" class="sapUiSmallMarginEnd">
+                            <f:header>
+                                <card:Header title="Current Leave Status" />
+                            </f:header>
+                            <f:content>
+                                <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
+                                    <Text id="leaveStatus" text="" />
+                                    <Button text="View Details" press="onViewLeaveDetails" />
+                                </VBox>
+                            </f:content>
+                        </f:Card>
+                        <f:Card width="20rem" height="10rem">
+                            <f:header>
+                                <card:Header title="Apply for Leave" />
+                            </f:header>
+                            <f:content>
+                                <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
+                                    <Button text="Apply" press="onOpenApplyLeave" class="sapUiSmallMarginTop" type="Accept" />
+                                </VBox>
+                            </f:content>
+                        </f:Card>
+                    </FlexBox>
+                </content>
+            </Page>
+        </detailPages>
+    </SplitApp>
+</mvc:View>

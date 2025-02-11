@@ -1,0 +1,30 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog title="Apply for Leave">
+        <VBox class="sapUiSmallMargin">
+            <Label text="Leave Type"/>
+            <Select id="leaveType">
+                <items>
+                    <core:Item key="AL" text="Annual Leave"/>
+                    <core:Item key="SL" text="Sick Leave"/>
+                    <core:Item key="PL" text="Personal Leave"/>
+                    <core:Item key="STL" text="Study Leave"/>
+                </items>
+            </Select>
+
+            <Label text="From Date"/>
+            <DatePicker id="fromDate"/>
+
+            <Label text="To Date"/>
+            <DatePicker id="toDate"/>
+
+            <Label text="Description"/>
+            <TextArea id="description" rows="4" cols="32"/>
+        </VBox>
+        <buttons>
+            <Button text="Submit" press="onSubmitLeave" type="Emphasized" />
+            <Button text="Cancel" press="onCloseApplyLeave" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

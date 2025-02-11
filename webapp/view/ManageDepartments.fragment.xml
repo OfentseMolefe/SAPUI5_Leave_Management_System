@@ -1,0 +1,30 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <Dialog title="Manage Departments" contentWidth="50%">
+        <Table id="departmentsTable" items="{/Departments}">
+            <columns>
+                <Column><Text text="Code" /></Column>
+                <Column><Text text="Name" /></Column>
+                <Column><Text text="Short Name" /></Column>
+                <Column><Text text="Actions" /></Column>
+            </columns>
+            <items>
+                <ColumnListItem>
+                    <cells>
+                        <Text text="{DeptCode}" />
+                        <Text text="{DeptName}" />
+                        <Text text="{DeptShortName}" />
+                        <HBox>
+                            <Button icon="sap-icon://edit" press="onEditDepartment" />
+                            <Button icon="sap-icon://delete" press="onDeleteDepartment" />
+                        </HBox>
+                    </cells>
+                </ColumnListItem>
+            </items>
+        </Table>
+        <buttons>
+            <Button text="Close" press="onCloseManageDepartments" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

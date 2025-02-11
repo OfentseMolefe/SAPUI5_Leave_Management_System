@@ -1,0 +1,52 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form">
+    <Dialog title="Add New Employee">
+        <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+            <f:content>
+                <Label text="Employee ID" required="true" />
+                <Input id="empId" />
+                <Label text="First Name" required="true" />
+                <Input id="firstName" />
+                <Label text="Last Name" required="true" />
+                <Input id="lastName" />
+                <Label text="Email ID" required="true" />
+                <Input id="emailId" type="Email" />
+                <Label text="Password" required="true" />
+                <Input id="password" type="Password" />
+                <Label text="Gender" required="true" />
+                <Select id="gender">
+                    <items>
+                        <core:Item key="M" text="Male" />
+                        <core:Item key="F" text="Female" />
+                        <core:Item key="O" text="Other" />
+                    </items>
+                </Select>
+                <Label text="Date of Birth" required="true" />
+                <DatePicker id="dateOfBirth" />
+                <Label text="Department" required="true" />
+                <Select id="department" items="{/Departments}">
+                    <core:Item key="{DeptCode}" text="{DeptName}" />
+                </Select>
+                <Label text="Address" />
+                <Input id="address" />
+                <Label text="City" />
+                <Input id="city" />
+                <Label text="Country" />
+                <Input id="country" />
+                <Label text="Status" required="true" />
+                <Select id="status">
+                    <items>
+                        <core:Item key="Active" text="Active" />
+                        <core:Item key="Inactive" text="Inactive" />
+                    </items>
+                </Select>
+            </f:content>
+        </f:SimpleForm>
+        <buttons>
+            <Button text="Save" press="onSaveEmployee" type="Emphasized" />
+            <Button text="Cancel" press="onCancelAddEmployee" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

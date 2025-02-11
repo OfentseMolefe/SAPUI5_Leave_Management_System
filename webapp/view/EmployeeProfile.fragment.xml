@@ -1,0 +1,46 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form">
+    <Dialog title="Employee Profile" contentWidth="400px">
+        <f:SimpleForm editable="false" layout="ResponsiveGridLayout">
+            <f:content>
+                <Label text="Full Name" />
+                <Text text="{/fullName}" />
+                <Label text="Gender" />
+                <Text text="{/gender}" />
+                <Label text="Department" />
+                <Text text="{/department}" />
+                <Label text="Date of Birth" />
+                <Text text="{
+                    path: '/dateOfBirth',
+                    type: 'sap.ui.model.type.Date',
+                    formatOptions: {
+                        style: 'medium',
+                        source: {
+                            pattern: 'yyyy-MM-dd'
+                        }
+                    }
+                }" />
+                <Label text="Phone" />
+                <Text text="{/phone}" />
+                <Label text="Address" />
+                <Text text="{/address}" />
+                <Label text="Registration Date" />
+                <Text text="{
+                    path: '/registrationDate',
+                    type: 'sap.ui.model.type.Date',
+                    formatOptions: {
+                        style: 'medium',
+                        source: {
+                            pattern: 'yyyy-MM-dd'
+                        }
+                    }
+                }" />
+            </f:content>
+        </f:SimpleForm>
+        <buttons>
+            <Button text="Close" press="onCloseProfile" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

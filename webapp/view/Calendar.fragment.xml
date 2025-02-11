@@ -1,0 +1,11 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:unified="sap.ui.unified">
+    <Dialog title="Calendar" contentWidth="400px" contentHeight="400px">
+        <unified:Calendar id="calendar" />
+        <buttons>
+            <Button text="Close" press="onCloseCalendar" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

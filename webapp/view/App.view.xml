@@ -1,0 +1,10 @@
+<mvc:View xmlns:mvc="sap.ui.core.mvc"
+          xmlns="sap.m"
+          controllerName="com.emls.controller.App">
+    <App id="app">
+        <pages>
+            <Page id="MainView" title="Leave Management System"/>
+            <Page id="Apply" title="Employee Dashboard"/>
+        </pages>
+    </App>
+</mvc:View>

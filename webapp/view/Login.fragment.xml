@@ -1,0 +1,27 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog id="loginDialog" title="User Login" type="Message">
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Label text="User Role"/>
+                <Select id="roleSelect">
+                    <items>
+                        <core:ListItem key="employee" text="Employee"/>
+                        <core:ListItem key="admin" text="Admin"/>
+                    </items>
+                </Select>
+
+                <Label text="Email ID"/>
+                <Input id="emailInput" type="Email"/>
+
+                <Label text="Password"/>
+                <Input id="passwordInput" type="Password"/>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Login" press="onLogin"/>
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press="onCancelLogin"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
