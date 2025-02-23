@@ -6,14 +6,18 @@
         <f:SimpleForm editable="false" layout="ResponsiveGridLayout">
             <f:content>
                 <Label text="Full Name" />
-                <Text text="{/fullName}" />
+                <Text text="{employee>/FirstName} {employee>/LastName}" />
+                <Label text="Email" />
+                <Text text="{employee>/EmailId}" />
+                <Label text="Employee ID" />
+                <Text text="{employee>/EmpId}" />
                 <Label text="Gender" />
-                <Text text="{/gender}" />
+                <Text text="{employee>/Gender}" />
                 <Label text="Department" />
-                <Text text="{/department}" />
+                <Text text="{employee>/Department}" />
                 <Label text="Date of Birth" />
                 <Text text="{
-                    path: '/dateOfBirth',
+                    path: 'employee>/Dob',
                     type: 'sap.ui.model.type.Date',
                     formatOptions: {
                         style: 'medium',
@@ -23,20 +27,9 @@
                     }
                 }" />
                 <Label text="Phone" />
-                <Text text="{/phone}" />
+                <Text text="{employee>/Phonenumber}" />
                 <Label text="Address" />
-                <Text text="{/address}" />
-                <Label text="Registration Date" />
-                <Text text="{
-                    path: '/registrationDate',
-                    type: 'sap.ui.model.type.Date',
-                    formatOptions: {
-                        style: 'medium',
-                        source: {
-                            pattern: 'yyyy-MM-dd'
-                        }
-                    }
-                }" />
+                <Text text="{employee>/Address}, {employee>/City}, {employee>/Country}" />
             </f:content>
         </f:SimpleForm>
         <buttons>
