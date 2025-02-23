@@ -35,7 +35,7 @@
                             </f:header>
                             <f:content>
                                 <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
-                                    <Text id="leaveStatus" text="" />
+                                    <Text id="leaveStatus" text="{employee>/leaveStatus}" />
                                     <Button text="View Details" press="onViewLeaveDetails" />
                                 </VBox>
                             </f:content>

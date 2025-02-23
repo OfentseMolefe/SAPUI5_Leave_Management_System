@@ -57,7 +57,7 @@ sap.ui.define(
           .then((data) => {
             if (data.message === "Login successful") {
               console.log("Login successful, user data:", data.employee)
-
+              
               // Store the entire employee object
               var oUserModel = new JSONModel(data.employee)
               this.getOwnerComponent().setModel(oUserModel, "userData")

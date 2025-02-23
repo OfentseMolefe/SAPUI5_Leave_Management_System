@@ -12,7 +12,6 @@ sap.ui.define(
       onInit: function () {
         this._loadEmployeeData()
         this._loadLeaveTypes()
-        this._loadLeaveStatus()
 
         var oLeaveApplicationModel = new JSONModel({
           LeaveType: "",
@@ -35,6 +34,7 @@ sap.ui.define(
           .then((data) => {
             var oLeaveTypesModel = new JSONModel(data)
             this.getView().setModel(oLeaveTypesModel, "leaveTypes")
+            this._loadLeaveStatus()
           })
           .catch((error) => {
             console.error("Error fetching leave types:", error)
@@ -43,23 +43,30 @@ sap.ui.define(
       },
 
       _loadLeaveStatus: function () {
-        var oUserData = this.getView().getModel("employee").getData()
-        console.log("leave status",oUserData)
+        var oUserData = this.getView().getModel("employee").getData();
         fetch(`http://localhost:3000/leave/employee/${oUserData.id}`)
-          .then((response) => response.json())
-          .then((data) => {
-            var latestLeave = data[data.length - 1]
-            if (latestLeave) {
-              this.getView().getModel("employee").setProperty("/leaveStatus", latestLeave.Status)
-            } else {
-              this.getView().getModel("employee").setProperty("/leaveStatus", "")
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching leave status:", error)
-            MessageBox.error("Failed to load leave status. Please try again.")
-          })
-      },
+            .then((response) => response.json())
+            .then((data) => {
+                var latestLeave = data[data.length - 1];
+                if (latestLeave) {
+                    this.getView().getModel("employee").setProperty(
+                        "/leaveStatus",
+                        latestLeave.Status === 0
+                            ? "Pending"
+                            : latestLeave.Status === 1
+                            ? "Approved"
+                            : "Rejected"
+                    );
+                    console.log("Leave Status:", latestLeave.Status);
+                } else {
+                    this.getView().getModel("employee").setProperty("/leaveStatus", "No Leave applied");
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching leave status:", error);
+                MessageBox.error("Failed to load leave status. Please try again.");
+            });
+    },
 
       onOpenMenu: function (oEvent) {
         if (!this._oMenu) {
