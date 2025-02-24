@@ -61,9 +61,7 @@ sap.ui.define(
               // Store the entire employee object
               var oUserModel = new JSONModel(data.employee)
               this.getOwnerComponent().setModel(oUserModel, "userData")
-
               this.getOwnerComponent().getRouter().navTo("RouteApply")
-             
             } else {
               MessageBox.error("Invalid employee credentials. Please try again.")
             }
@@ -91,6 +89,7 @@ sap.ui.define(
               // Store user data in the component
               this.getOwnerComponent().setModel(new JSONModel(data.admin), "adminData")
               console.log("Login successful, admin data:", data.admin)
+              oDialog.close()
               this.getOwnerComponent().getRouter().navTo("RouteAdmin")
             } else {
               MessageBox.error("Invalid admin credentials. Please try again.")
