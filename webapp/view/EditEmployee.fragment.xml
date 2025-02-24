@@ -1,0 +1,47 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form">
+    <Dialog title="Edit Employee">
+        <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
+            <f:content>
+                <Label text="Employee ID" required="true" />
+                <Input value="{/EmpId}" editable="false" />
+                <Label text="First Name" required="true" />
+                <Input value="{/FirstName}" />
+                <Label text="Last Name" required="true" />
+                <Input value="{/LastName}" />
+                <Label text="Email ID" required="true" />
+                <Input value="{/EmailId}" type="Email" />
+                <Label text="Gender" required="true" />
+                <Select selectedKey="{/Gender}">
+                    <core:Item key="M" text="Male" />
+                    <core:Item key="F" text="Female" />
+                    <core:Item key="O" text="Other" />
+                </Select>
+                <Label text="Date of Birth" required="true" />
+                <DatePicker value="{/Dob}" />
+                <Label text="Department" required="true" />
+                <Select selectedKey="{/Department}" items="{departments>/Departments}">
+                    <core:Item key="{departments>DepartmentCode}" text="{departments>DepartmentName}" />
+                </Select>
+                <Label text="Address" />
+                <Input value="{/Address}" />
+                <Label text="City" />
+                <Input value="{/City}" />
+                <Label text="Country" />
+                <Input value="{/Country}" />
+                <Label text="Status" required="true" />
+                <Select selectedKey="{/Status}">
+                    <core:Item key="Active" text="Active" />
+                    <core:Item key="Inactive" text="Inactive" />
+                </Select>
+            </f:content>
+        </f:SimpleForm>
+        <buttons>
+            <Button text="Save" press="onSaveEditEmployee" type="Emphasized" />
+            <Button text="Cancel" press="onCancelEditEmployee" />
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>
+
