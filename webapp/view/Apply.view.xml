@@ -30,16 +30,30 @@
                         wrap="Wrap"
                         class="sapUiSmallMargin">
                         <f:Card width="20rem" height="10rem" class="sapUiSmallMarginEnd">
-                            <f:header>
-                                <card:Header title="Current Leave Status" />
-                            </f:header>
-                            <f:content>
-                                <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
-                                    <Text id="leaveStatus" text="{employee>/leaveStatus}" />
-                                    <Button text="View Details" press="onViewLeaveDetails" />
-                                </VBox>
-                            </f:content>
-                        </f:Card>
+                                <f:header>
+                                    <card:Header title="Current Leave Status" />
+                                </f:header>
+                                <f:content>
+                                    <VBox alignItems="Center" justifyContent="Center" class="sapUiSmallMargin">
+                                        <HBox alignItems="Center" justifyContent="Center">
+                                            <core:Icon
+                                                src="{
+                                                    path: 'employee>/leaveStatus',
+                                                    formatter: '.formatStatusIcon'
+                                                }"
+                                                class="sapUiSmallMarginEnd"
+                                                size="1.5rem"
+                                            />
+                                            <Text id="leaveStatus" text="{
+                                                path: 'employee>/leaveStatus',
+                                                formatter: '.formatLeaveStatus'
+                                            }" />
+                                        </HBox>
+                                        <Text text="{employee>/latestLeaveType}" class="sapUiSmallMarginTop" />
+                                        <Button text="View Details" press="onViewLeaveDetails" class="sapUiSmallMarginTop" />
+                                    </VBox>
+                                </f:content>
+                            </f:Card>
                         <f:Card width="20rem" height="10rem">
                             <f:header>
                                 <card:Header title="Apply for Leave" />
