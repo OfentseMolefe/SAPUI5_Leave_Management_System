@@ -11,7 +11,7 @@
                     items="{leaveTypes>/}"
                     forceSelection="false"
                     selectedKey="{leaveApplication>/LeaveType}">
-                    <core:Item key="{leaveTypes>id}" text="{leaveTypes>LeaveType}" />
+                    <core:Item key="{leaveTypes>LeaveType}" text="{leaveTypes>LeaveType}" />
                 </Select>
                 <Label text="From Date" />
                 <DatePicker id="fromDate" value="{leaveApplication>/FromDate}" />
