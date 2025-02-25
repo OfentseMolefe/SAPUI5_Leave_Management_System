@@ -25,7 +25,7 @@ sap.ui.define(
       _loadEmployeeData: function () {
         var oUserData = this.getOwnerComponent().getModel("userData").getData()
         this.getView().setModel(new JSONModel(oUserData), "employee")
-        console.log("Employee Data:",oUserData)
+        console.log("Employee Data:", oUserData)
       },
 
       _loadLeaveTypes: function () {
@@ -45,29 +45,54 @@ sap.ui.define(
       _loadLeaveStatus: function () {
         var oUserData = this.getView().getModel("employee").getData();
         fetch(`http://localhost:3000/leave/employee/${oUserData.id}`)
-            .then((response) => response.json())
-            .then((data) => {
-                var latestLeave = data[data.length - 1];
-                if (latestLeave) {
-                    this.getView().getModel("employee").setProperty(
-                        "/leaveStatus",
-                        latestLeave.Status === 0
-                            ? "Pending"
-                            : latestLeave.Status === 1
-                            ? "Approved"
-                            : "Rejected"
-                    );
-                    console.log("Leave Status:", latestLeave.Status);
-                } else {
-                    this.getView().getModel("employee").setProperty("/leaveStatus", "No Leave applied");
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching leave status:", error);
-                MessageBox.error("Failed to load leave status. Please try again.");
-            });
-    },
-
+          .then((response) => response.json())
+          .then((data) => {
+            var latestLeave = data[data.length - 1];
+            if (latestLeave) {
+              this.getView().getModel("employee").setProperty(
+                "/leaveStatus",
+                latestLeave.Status === 0
+                  ? "Pending"
+                  : latestLeave.Status === 1
+                    ? "Approved"
+                    : "Rejected"
+              );
+              console.log("Leave Status:", latestLeave.Status);
+            } else {
+              this.getView().getModel("employee").setProperty("/leaveStatus", "No Leave applied");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching leave status:", error);
+            MessageBox.error("Failed to load leave status. Please try again.");
+          });
+      },
+      formatLeaveStatus: (status) => {
+        switch (Number.parseInt(status)) {
+          case 0:
+            return "Pending"
+          case 1:
+            return "Approved"
+          case 2:
+            return "Rejected"
+          default:
+            return "Unknown"
+        }
+      }
+      ,
+      formatStatusIcon: (status) => {
+        switch (Number.parseInt(status)) {
+          case 0:
+            return "sap-icon://pending"
+          case 1:
+            return "sap-icon://accept"
+          case 2:
+            return "sap-icon://decline"
+          default:
+            return "sap-icon://question-mark"
+        }
+      }
+      ,
       onOpenMenu: function (oEvent) {
         if (!this._oMenu) {
           this._oMenu = sap.ui.xmlfragment("com.emls.view.SidebarMenu", this)
@@ -210,35 +235,58 @@ sap.ui.define(
       },
 
       onSubmitLeave: function () {
+        // Get the leave application data from the model
         var oLeaveApplicationModel = this.getView().getModel("leaveApplication")
         var oLeaveData = oLeaveApplicationModel.getData()
         var oUserData = this.getView().getModel("employee").getData()
 
-        if (!oLeaveData.LeaveType || !oLeaveData.FromDate || !oLeaveData.ToDate || !oLeaveData.Description) {
+        console.log("Leave Data before submission:", oLeaveData) // Debug log
+
+        // Validate required fields
+        if (
+          !oLeaveData.LeaveType ||
+          (oLeaveData.LeaveType === "Other" && !oLeaveData.CustomLeaveType) ||
+          !oLeaveData.FromDate ||
+          !oLeaveData.ToDate ||
+          !oLeaveData.Description
+        ) {
           MessageBox.error("Please fill in all required fields.")
           return
         }
 
+        // Validate date range
         if (oLeaveData.FromDate > oLeaveData.ToDate) {
           MessageBox.error("From Date must be earlier than or equal to To Date.")
           return
         }
 
+        // Determine the leave type to be sent
+        var leaveType = oLeaveData.LeaveType === "Other" ? oLeaveData.CustomLeaveType : oLeaveData.LeaveType
+
+        console.log("Final Leave Type to be submitted:", leaveType) // Debug log
+
+        // Prepare the data to be sent to the server
+        var leaveRequestData = {
+          LeaveType: leaveType, // This will be the plain text of the leave type
+          FromDate: oLeaveData.FromDate,
+          ToDate: oLeaveData.ToDate,
+          Description: oLeaveData.Description,
+          empid: oUserData.id,
+        }
+
+        console.log("Leave Request Data:", leaveRequestData) // Debug log
+
+        // Send the leave request to the server
         fetch("http://localhost:3000/leave", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            LeaveType: oLeaveData.LeaveType,
-            FromDate: oLeaveData.FromDate,
-            ToDate: oLeaveData.ToDate,
-            Description: oLeaveData.Description,
-            empid: oUserData.id,
-          }),
+          body: JSON.stringify(leaveRequestData),
         })
           .then((response) => response.json())
           .then((data) => {
+            console.log("Server response:", data) // Debug log
             if (data.message === "Leave request created successfully") {
               MessageBox.success("Leave application submitted successfully.", {
                 onClose: function () {
@@ -251,7 +299,7 @@ sap.ui.define(
             }
           })
           .catch((error) => {
-            console.error("Error:", error)
+            console.error("Error submitting leave request:", error)
             MessageBox.error("An error occurred. Please try again.")
           })
       },

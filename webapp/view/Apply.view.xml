@@ -54,7 +54,7 @@
                                     </VBox>
                                 </f:content>
                             </f:Card>
-                        <f:Card width="20rem" height="10rem">
+                        <f:Card width="20rem" height="10rem" class="sapUiSmallMarginEnd">
                             <f:header>
                                 <card:Header title="Apply for Leave" />
                             </f:header>
