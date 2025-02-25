@@ -12,9 +12,9 @@
             <items>
                 <ColumnListItem>
                     <cells>
-                        <Text text="{DeptCode}" />
-                        <Text text="{DeptName}" />
-                        <Text text="{DeptShortName}" />
+                        <Text text="{DepartmentCode}" />
+                        <Text text="{DepartmentName}" />
+                        <Text text="{DepartmentShortName}" />
                         <HBox>
                             <Button icon="sap-icon://edit" press="onEditDepartment" />
                             <Button icon="sap-icon://delete" press="onDeleteDepartment" />
