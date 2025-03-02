@@ -55,6 +55,8 @@ sap.ui.define(
                   ? "Pending"
                   : latestLeave.Status === 1
                     ? "Approved"
+                    : latestLeave.Status === 2
+                      ? "Pending"
                     : "Rejected"
               );
               console.log("Leave Status:", latestLeave.Status);
@@ -74,7 +76,9 @@ sap.ui.define(
           case 1:
             return "Approved"
           case 2:
-            return "Rejected"
+            return "Pending"
+          case 3: 
+             return "Rejected"
           default:
             return "Unknown"
         }
@@ -87,6 +91,8 @@ sap.ui.define(
           case 1:
             return "sap-icon://accept"
           case 2:
+            return "sap-icon://pending"
+          case 3:
             return "sap-icon://decline"
           default:
             return "sap-icon://question-mark"
