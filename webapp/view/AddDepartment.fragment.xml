@@ -6,11 +6,11 @@
         <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
             <f:content>
                 <Label text="Department Code" required="true" />
-                <Input id="deptCode" />
+                <Input id="deptCode" placeholder="Enter department code" />
                 <Label text="Department Name" required="true" />
-                <Input id="deptName" />
+                <Input id="deptName" placeholder="Enter department name" />
                 <Label text="Department Short Name" required="true" />
-                <Input id="deptShortName" />
+                <Input id="deptShortName" placeholder="Enter short name" />
             </f:content>
         </f:SimpleForm>
         <buttons>

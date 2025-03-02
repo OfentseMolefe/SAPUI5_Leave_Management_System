@@ -27,7 +27,7 @@
                 <DatePicker id="dateOfBirth" />
                 <Label text="Department" required="true" />
                 <Select id="department" items="{/Departments}">
-                    <core:Item key="{DeptCode}" text="{DeptName}" />
+                    <core:Item key="{DepartmentCode}" text="{DepartmentName}" />
                 </Select>
                 <Label text="Address" />
                 <Input id="address" />
