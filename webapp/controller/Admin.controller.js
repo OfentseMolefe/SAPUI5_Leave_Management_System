@@ -18,14 +18,17 @@ sap.ui.define(
         this._initializeModels()
 
         // Load admin data from the model
-       // var oAdminData = this.getOwnerComponent().getModel("adminData").getData()
-       // console.log("Admin data loaded:", oAdminData)
+        // var oAdminData = this.getOwnerComponent().getModel("adminData").getData()
+        // console.log("Admin data loaded:", oAdminData)
 
         // Load real data
         this._loadDepartments()
         this._loadEmployees()
         this._loadLeaveTypes()
         this._loadLeaveRequests()
+
+        // Initialize a model for the current leave request being processed
+        this.getView().setModel(new JSONModel(), "currentLeaveRequest")
       },
 
       // Load leave requests from server
@@ -45,7 +48,7 @@ sap.ui.define(
       },
 
       _processLeaveRequests: function (leaveRequests) {
-        
+
         var processedRequests = {
           NewRequests: [],
           PendingRequests: [],
@@ -225,7 +228,7 @@ sap.ui.define(
         console.log("Editing department")
         var oContext = oEvent.getSource().getBindingContext()
         var oDepartment = oContext.getObject()
-
+        this._oEditDepartmentDialog.data("departmentId", oDepartment.id);
         if (!this._oEditDepartmentDialog) {
           this._oEditDepartmentDialog = sap.ui.xmlfragment("com.emls.view.EditDepartment", this)
           this.getView().addDependent(this._oEditDepartmentDialog)
@@ -516,64 +519,140 @@ sap.ui.define(
         }
       },
 
-      // Approve leave request
+      // Modified method to show remarks dialog before approving
       onApproveLeave: function (oEvent) {
-        console.log("Approving leave request")
-        var oSource = oEvent.getSource()
-        var oContext = oSource.getBindingContext()
-        var oLeaveRequest = oContext.getObject()
 
-        MessageBox.confirm("Are you sure you want to approve this leave request?", {
-          onClose: function (oAction) {
-            if (oAction === MessageBox.Action.OK) {
-              // Implement the logic to move the request from NewRequests to ApprovedRequests
-              var oModel = this.getView().getModel()
-              var aNewRequests = oModel.getProperty("/NewRequests")
-              var aApprovedRequests = oModel.getProperty("/ApprovedRequests")
-
-              var iIndex = aNewRequests.indexOf(oLeaveRequest)
-              if (iIndex > -1) {
-                oLeaveRequest.leaveType = this.getLeaveTypeName(oLeaveRequest.LeaveType)
-                aNewRequests.splice(iIndex, 1)
-                aApprovedRequests.push(oLeaveRequest)
-                oModel.setProperty("/NewRequests", aNewRequests)
-                oModel.setProperty("/ApprovedRequests", aApprovedRequests)
-              }
-
-              MessageBox.success("Leave request approved successfully")
-            }
-          }.bind(this),
-        })
+        var oSource = oEvent.getSource();
+        var oContext = oSource.getBindingContext(); // Remove "leaveRequests"
+        var oLeaveRequest = oContext.getObject();
+        
+        // Store in currentLeaveRequest model
+        this.getView().getModel("currentLeaveRequest").setData({
+          request: oLeaveRequest,
+          action: "approve"
+        });
+        console.log("Approving leave request:Is approved pressed", oLeaveRequest);
+        this._showRemarksDialog();
       },
 
-      // Reject leave request
+      // Modified method to show remarks dialog before rejecting
       onRejectLeave: function (oEvent) {
-        console.log("Rejecting leave request")
-        var oSource = oEvent.getSource()
-        var oContext = oSource.getBindingContext()
-        var oLeaveRequest = oContext.getObject()
+        var oContext = oEvent.getSource().getBindingContext();
+        if (oContext) {
+          var oLeaveRequest = oContext.getObject()
+          // Store the current leave request and action in the model
+          this.getView().getModel("currentLeaveRequest").setData({
+            request: oLeaveRequest,
+            action: "reject",
+          })
+          this._showRemarksDialog()
+        } else {
+          console.error("Binding context is undefined")
+          MessageBox.error("An error occurred while processing your request. Please try again.")
+        }
+      },
 
-        MessageBox.confirm("Are you sure you want to reject this leave request?", {
-          onClose: function (oAction) {
-            if (oAction === MessageBox.Action.OK) {
-              // Implement the logic to move the request from NewRequests to RejectedRequests
-              var oModel = this.getView().getModel()
-              var aNewRequests = oModel.getProperty("/NewRequests")
-              var aRejectedRequests = oModel.getProperty("/RejectedRequests")
+      // New method to show the remarks dialog
+      // In _showRemarksDialog function:
+_showRemarksDialog: function() {
+  if (!this._oRemarksDialog) {
+      this._oRemarksDialog = sap.ui.xmlfragment("com.emls.view.AdminRemarks", this);
+      console.log("Remarks dialog created:", this._oRemarksDialog);
+      this.getView().addDependent(this._oRemarksDialog);
+  }
+  
+  // Set dialog content based on action
+  const oModel = this.getView().getModel("currentLeaveRequest");
+  const sAction = oModel.getProperty("/action");
+  
+  oModel.setProperty("/dialogTitle", 
+      sAction === "approve" ? "Approve Leave Request" : "Reject Leave Request");
+  
+  oModel.setProperty("/actionMessage", 
+      sAction === "approve" 
+          ? "You are approving this leave request. Please provide approval remarks:"
+          : "You are rejecting this leave request. Please provide rejection reason:");
 
-              var iIndex = aNewRequests.indexOf(oLeaveRequest)
-              if (iIndex > -1) {
-                oLeaveRequest.leaveType = this.getLeaveTypeName(oLeaveRequest.LeaveType)
-                aNewRequests.splice(iIndex, 1)
-                aRejectedRequests.push(oLeaveRequest)
-                oModel.setProperty("/NewRequests", aNewRequests)
-                oModel.setProperty("/RejectedRequests", aRejectedRequests)
+  this._oRemarksDialog.open();
+},
+
+// Modified cancel handler
+onCancelRemarks: function() {
+  MessageBox.confirm(
+      "Are you sure you want to cancel? This request will remain in pending status.",
+      {
+          title: "Cancel Remarks",
+          onClose: function(oAction) {
+              if (oAction === MessageBox.Action.OK) {
+                  const oData = this.getView().getModel("currentLeaveRequest").getData();
+                  console.log("Cancelling request:", oData.request);
+                  this._updateLeaveStatus(oData.request.id, 2); // Set to pending
+                  this._oRemarksDialog.close();
               }
+          }.bind(this)
+      }
+  );
+},
 
-              MessageBox.success("Leave request rejected successfully")
-            }
-          }.bind(this),
+      // New method to handle remarks submission
+      onSubmitRemarks: function () {
+        // Use this.byId to access fragment controls
+        var sRemarks = sap.ui.getCore().byId("adminRemarks").getValue()
+        console.log("Submitting remarks:", sRemarks)
+        var oCurrentLeaveRequest = this.getView().getModel("currentLeaveRequest").getData();
+
+        if (!sRemarks) {
+          MessageBox.error("Please enter remarks.");
+          return;
+        }
+
+        var newStatus = oCurrentLeaveRequest.action === "approve" ? 1 : 3;
+        this._updateLeaveStatus(oCurrentLeaveRequest.request.id, newStatus, sRemarks);
+        this._oRemarksDialog.close();
+      },
+
+      // Modified method to update leave status with remarks
+      _updateLeaveStatus: function (leaveId, newStatus, remarks) {
+        const oModel = this.getView().getModel();
+        const aLeaveRequests = oModel.getProperty("/NewRequests").concat(
+          oModel.getProperty("/PendingRequests"),
+          oModel.getProperty("/ApprovedRequests"),
+          oModel.getProperty("/RejectedRequests")
+        );
+      
+        const oLeaveRequest = aLeaveRequests.find(request => request.id === leaveId);
+         console.log("Updating leave request:", oLeaveRequest)
+         console.log("What is this remarks:",remarks)
+        if (!oLeaveRequest) {
+          MessageBox.error("Leave request not found in local data");
+          return;
+        }
+      
+        const payload = {
+          Status: newStatus,
+          AdminRemark: remarks,
+          LeaveType: oLeaveRequest.leaveType,
+          FromDate: oLeaveRequest.startDate,
+          IsRead: 1,
+          ToDate: oLeaveRequest.endDate,
+          Description: oLeaveRequest.description,
+          empid: oLeaveRequest.empid
+        };
+      
+        fetch(`http://localhost:3000/leave/${leaveId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         })
+        .then(response => response.json())
+        .then(data => {
+          console.log("Update response:", data);
+          this._loadLeaveRequests();
+        })
+        .catch(error => {
+          console.error("Update error:", error);
+          MessageBox.error("Update failed: " + error.message);
+        });
       },
 
       // Load employees from server
@@ -660,10 +739,10 @@ sap.ui.define(
       },
 
       //format date
-      formatDate: function(dateString) {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString(); 
-}
+      formatDate: function (dateString) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+      }
     }),
 )
