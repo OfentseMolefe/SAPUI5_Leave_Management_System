@@ -86,6 +86,8 @@
                                         <VBox class="sapUiSmallMargin">
                                             <Text text="Employee: {employeeName}"/>
                                             <Text text="Leave Type: {leaveType}"/>
+                                          <Text text="Duration: {duration} Days"/>
+                                            <Text text="From: {startDate} - To: {endDate}"/>
                                             <ProgressIndicator percentValue="{progress}" displayValue="{progress}%" state="Warning"/>
                                             <HBox justifyContent="End">
                                                 <Button icon="sap-icon://accept" type="Accept" press=".onApproveLeave"/>
@@ -105,7 +107,9 @@
                                 <List items="{/ApprovedRequests}" noDataText="No Approved Requests">
                                     <CustomListItem>
                                         <VBox class="sapUiSmallMargin">
-                                            <Text text="Employee: {employeeName}"/>
+                                            <Text text="Name Of Employee: {employeeName}"/>
+                                            <Text text="Leave Type: {leaveType}"/>
+                                            <Text text="Start from : {startDate} "/>
                                             <Text text="Duration: {duration} Days"/>
                                             <ObjectStatus text="Approved" state="Success"/>
                                         </VBox>

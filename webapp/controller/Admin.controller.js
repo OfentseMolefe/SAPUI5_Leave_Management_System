@@ -273,21 +273,18 @@ sap.ui.define(
         this._oManageDepartmentsDialog.close()
       },
 
-      // Load departments from server
-      _loadDepartments: function () {
-        console.log("Loading departments from server")
+     // Update _loadDepartments to return a Promise
+     _loadDepartments: function() {
+      return new Promise((resolve, reject) => {
         fetch("http://localhost:3000/departments")
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Departments loaded:", data)
-            var oModel = this.getView().getModel()
-            oModel.setProperty("/Departments", data)
+          .then(response => response.json())
+          .then(data => {
+            this.getView().getModel().setProperty("/Departments", data);
+            resolve();
           })
-          .catch((error) => {
-            console.error("Error loading departments:", error)
-            MessageBox.error("Failed to load departments. Please try again.")
-          })
-      },
+          .catch(error => reject(error));
+      });
+    },
 
       // Save edited department
       onSaveEditDepartment: function () {
@@ -330,14 +327,20 @@ sap.ui.define(
       // Employee Management
 
       // Open add employee dialog
-      onAddEmployee: function () {
-        console.log("Opening add employee dialog")
-        if (!this._oAddEmployeeDialog) {
-          this._oAddEmployeeDialog = sap.ui.xmlfragment("com.emls.view.AddEmployee", this)
-          this.getView().addDependent(this._oAddEmployeeDialog)
-        }
-        console.log("Departments for AddEmployee:", this.getView().getModel().getProperty("/Departments"))
-        this._oAddEmployeeDialog.open()
+      onAddEmployee: function() {
+        // First load departments
+        this._loadDepartments().then(() => {
+          if (!this._oAddEmployeeDialog) {
+            this._oAddEmployeeDialog = sap.ui.xmlfragment(
+              "com.emls.view.AddEmployee", 
+              this
+            );
+            this.getView().addDependent(this._oAddEmployeeDialog);
+          }
+          this._oAddEmployeeDialog.open();
+        }).catch(error => {
+          MessageBox.error("Failed to load departments");
+        });
       },
 
       // Save new employee
