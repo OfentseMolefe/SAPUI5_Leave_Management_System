@@ -1,37 +1,40 @@
 <core:FragmentDefinition
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:f="sap.ui.layout.form">
+    xmlns:f="sap.ui.layout.form"
+    xmlns:l="sap.ui.layout">
     <Dialog
-        title="Admin Remarks"
+        id="remarksDialog"
+        title="{currentLeaveRequest>/dialogTitle}"
         class="sapUiContentPadding">
-        <f:SimpleForm
-            editable="true"
-            layout="ResponsiveGridLayout"
-            labelSpanXL="4"
-            labelSpanL="4"
-            labelSpanM="4"
-            labelSpanS="12"
-            adjustLabelSpan="false"
-            emptySpanXL="0"
-            emptySpanL="0"
-            emptySpanM="0"
-            emptySpanS="0"
-            columnsXL="1"
-            columnsL="1"
-            columnsM="1"
-            singleContainerFullSize="false">
-            <f:content>
-                <Label text="Remarks" required="true" />
-                <TextArea id="adminRemarks" rows="4" width="100%" placeholder="Enter your remarks here" />
-            </f:content>
-        </f:SimpleForm>
+        <content>
+            <l:VerticalLayout class="sapUiMediumMargin">
+                <Text 
+                    text="{currentLeaveRequest>/actionMessage}" 
+                    class="sapUiSmallMarginBottom"/>
+                <f:SimpleForm
+                    editable="true"
+                    layout="ResponsiveGridLayout">
+                    <f:content>
+                        <Label text="Remarks" required="true"/>
+                        <TextArea 
+                            id="adminRemarks" 
+                            rows="4" 
+                            width="100%" 
+                            placeholder="Enter your remarks here"
+                            value="{currentLeaveRequest>/remarks}"/>
+                    </f:content>
+                </f:SimpleForm>
+            </l:VerticalLayout>
+        </content>
         <beginButton>
-            <Button text="Submit" press=".onSubmitRemarks" type="Emphasized" />
+            <Button 
+                text="{= ${currentLeaveRequest>/action} === 'approve' ? 'Approve' : 'Reject' }" 
+                type="Emphasized" 
+                press="onSubmitRemarks"/>
         </beginButton>
         <endButton>
-            <Button text="Cancel" press=".onCancelRemarks" />
+            <Button text="Cancel" press="onCancelRemarks"/>
         </endButton>
     </Dialog>
 </core:FragmentDefinition>
-
