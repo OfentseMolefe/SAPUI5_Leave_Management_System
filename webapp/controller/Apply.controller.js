@@ -48,57 +48,43 @@ sap.ui.define(
           .then((response) => response.json())
           .then((data) => {
             var latestLeave = data[data.length - 1];
+            const oModel = this.getView().getModel("employee");
+            
             if (latestLeave) {
-              this.getView().getModel("employee").setProperty(
-                "/leaveStatus",
-                latestLeave.Status === 0
-                  ? "Pending"
-                  : latestLeave.Status === 1
-                    ? "Approved"
-                    : latestLeave.Status === 2
-                      ? "Pending"
-                    : "Rejected"
-              );
+              oModel.setProperty("/leaveStatus", latestLeave.Status);
+              oModel.setProperty("/latestLeaveType", latestLeave.LeaveType);
               console.log("Leave Status:", latestLeave.Status);
             } else {
-              this.getView().getModel("employee").setProperty("/leaveStatus", "No Leave applied");
+              oModel.setProperty("/leaveStatus", -1);  // Special value for no leave
+              oModel.setProperty("/latestLeaveType", "No leave requests");
             }
           })
           .catch((error) => {
             console.error("Error fetching leave status:", error);
             MessageBox.error("Failed to load leave status. Please try again.");
           });
+      }
+      ,
+      formatLeaveStatus: function(status) {
+        switch(status) {
+          case 0: return "Submitted";
+          case 1: return "Approved";
+          case 2: return "Pending Approval";
+          case 3: return "Rejected";
+          default: return "No Active Leave";
+        }
       },
-      formatLeaveStatus: (status) => {
-        switch (Number.parseInt(status)) {
-          case 0:
-            return "Pending"
-          case 1:
-            return "Approved"
-          case 2:
-            return "Pending"
-          case 3: 
-             return "Rejected"
-          default:
-            return "Unknown"
+      
+      formatStatusIcon: function(status) {
+        switch(status) {
+          case 0: return "sap-icon://status-in-process";  // Submitted
+          case 1: return "sap-icon://accept";             // Approved
+          case 2: return "sap-icon://pending";            // Pending
+          case 3: return "sap-icon://decline";            // Rejected
+          default: return "sap-icon://bed";               // No active leave
         }
-      }
-      ,
-      formatStatusIcon: (status) => {
-        switch (Number.parseInt(status)) {
-          case 0:
-            return "sap-icon://pending"
-          case 1:
-            return "sap-icon://accept"
-          case 2:
-            return "sap-icon://pending"
-          case 3:
-            return "sap-icon://decline"
-          default:
-            return "sap-icon://question-mark"
-        }
-      }
-      ,
+      },
+      
       onOpenMenu: function (oEvent) {
         if (!this._oMenu) {
           this._oMenu = sap.ui.xmlfragment("com.emls.view.SidebarMenu", this)
