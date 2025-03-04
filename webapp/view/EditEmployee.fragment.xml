@@ -36,6 +36,8 @@
                 <Input value="{/City}" />
                 <Label text="Country" />
                 <Input value="{/Country}" />
+                <Label text="Phone number" />
+                <Input value="{/Phonenumber}" />
                 <Label text="Status" required="true" />
                 <Select selectedKey="{/Status}">
                     <core:Item key="Active" text="Active" />

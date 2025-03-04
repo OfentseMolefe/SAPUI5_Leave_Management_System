@@ -315,7 +315,7 @@ sap.ui.define(
             MessageBox.success("Department updated successfully");
             this._loadDepartments().then(() => {
               this._oEditDepartmentDialog.close();
-              this._oManageDepartmentsDialog.close();
+              //this._oManageDepartmentsDialog.close();
             });
           })
           .catch(error => {
@@ -696,6 +696,7 @@ sap.ui.define(
               // Enhance employee data
               const aEnhancedEmployees = employees.map(employee => ({
                 ...employee,
+                Phonenumber: employee.Phonenumber || "", // Add phone number
                 Department: mDepartments[employee.Department] || employee.Department,
                 Status: employee.Status === 1 ? "Active" : "Inactive"
               }));
@@ -723,6 +724,7 @@ sap.ui.define(
           Address: oData.Address,
           City: oData.City,
           Country: oData.Country,
+          Phonenumber: oData.Phonenumber,
           Status: oData.Status === "Active" ? 1 : 0
         };
 
@@ -740,7 +742,7 @@ sap.ui.define(
               MessageBox.success("Employee updated successfully");
               this._loadEmployees().then(() => {
                 this._oEditEmployeeDialog.close();
-                this._oManageEmployeesDialog.close();
+               // this._oManageEmployeesDialog.close();
               });
             }
           })
