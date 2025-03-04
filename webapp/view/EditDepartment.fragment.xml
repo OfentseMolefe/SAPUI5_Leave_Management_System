@@ -5,18 +5,17 @@
     <Dialog title="Edit Department">
         <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
             <f:content>
-                <Label text="Department Code" required="true" />
-                <Input value="{/DepartmentCode}" editable="false" />
-                <Label text="Department Name" required="true" />
-                <Input value="{/DepartmentName}" />
-                <Label text="Department Short Name" required="true" />
-                <Input value="{/DepartmentShortName}" />
+                <Label text="Department Code" required="true"/>
+                <Input value="{DepartmentCode}" editable="false"/>
+                <Label text="Department Name" required="true"/>
+                <Input value="{DepartmentName}"/>
+                <Label text="Department Short Name" required="true"/>
+                <Input value="{DepartmentShortName}"/>
             </f:content>
         </f:SimpleForm>
         <buttons>
-            <Button text="Save" press="onSaveEditDepartment" type="Emphasized" />
-            <Button text="Cancel" press="onCancelEditDepartment" />
+            <Button text="Save" press="onSaveEditDepartment" type="Emphasized"/>
+            <Button text="Cancel" press="onCancelEditDepartment"/>
         </buttons>
     </Dialog>
 </core:FragmentDefinition>
-

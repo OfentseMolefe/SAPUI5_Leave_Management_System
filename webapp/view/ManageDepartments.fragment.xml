@@ -4,10 +4,10 @@
     <Dialog title="Manage Departments" contentWidth="50%">
         <Table id="departmentsTable" items="{/Departments}">
             <columns>
-                <Column><Text text="Code" /></Column>
-                <Column><Text text="Name" /></Column>
-                <Column><Text text="Short Name" /></Column>
-                <Column><Text text="Actions" /></Column>
+                <Column width="20%"><Text text="Code" /></Column>
+                <Column width="30%"><Text text="Name" /></Column>
+                <Column width="30%"><Text text="Short Name" /></Column>
+                <Column width="20%"><Text text="Actions" /></Column>
             </columns>
             <items>
                 <ColumnListItem>
@@ -15,9 +15,17 @@
                         <Text text="{DepartmentCode}" />
                         <Text text="{DepartmentName}" />
                         <Text text="{DepartmentShortName}" />
-                        <HBox>
-                            <Button icon="sap-icon://edit" press="onEditDepartment" />
-                            <Button icon="sap-icon://delete" press="onDeleteDepartment" />
+                        <HBox justifyContent="Center">
+                            <Button 
+                                icon="sap-icon://edit" 
+                                press="onEditDepartment" 
+                                tooltip="Edit"
+                                class="sapUiTinyMarginEnd"/>
+                            <Button 
+                                icon="sap-icon://delete" 
+                                press="onDeleteDepartment" 
+                                tooltip="Delete"
+                                type="Reject"/>
                         </HBox>
                     </cells>
                 </ColumnListItem>

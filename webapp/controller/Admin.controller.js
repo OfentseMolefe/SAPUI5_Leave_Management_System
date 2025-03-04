@@ -214,31 +214,37 @@ sap.ui.define(
       },
 
       // Open manage departments dialog
-      onManageDepartments: function () {
-        console.log("Opening manage departments dialog")
-        if (!this._oManageDepartmentsDialog) {
-          this._oManageDepartmentsDialog = sap.ui.xmlfragment("com.emls.view.ManageDepartments", this)
-          this.getView().addDependent(this._oManageDepartmentsDialog)
-        }
-        this._oManageDepartmentsDialog.open()
+      onManageDepartments: function() {
+        // Load departments first
+        this._loadDepartments().then(() => {
+          if (!this._oManageDepartmentsDialog) {
+            this._oManageDepartmentsDialog = sap.ui.xmlfragment(
+              "com.emls.view.ManageDepartments", 
+              this
+            );
+            this.getView().addDependent(this._oManageDepartmentsDialog);
+          }
+          this._oManageDepartmentsDialog.open();
+        });
       },
 
       // Edit department
-      onEditDepartment: function (oEvent) {
-        console.log("Editing department")
-        var oContext = oEvent.getSource().getBindingContext()
-        var oDepartment = oContext.getObject()
-        this._oEditDepartmentDialog.data("departmentId", oDepartment.id);
+      onEditDepartment: function(oEvent) {
+        const oRow = oEvent.getSource().getParent().getParent();
+        const oDepartment = oRow.getBindingContext().getObject();
+      
         if (!this._oEditDepartmentDialog) {
-          this._oEditDepartmentDialog = sap.ui.xmlfragment("com.emls.view.EditDepartment", this)
-          this.getView().addDependent(this._oEditDepartmentDialog)
+          this._oEditDepartmentDialog = sap.ui.xmlfragment(
+            "com.emls.view.EditDepartment", 
+            this
+          );
+          this.getView().addDependent(this._oEditDepartmentDialog);
         }
-
-        sap.ui.getCore().byId("editDeptCode").setValue(oDepartment.DepartmentCode)
-        sap.ui.getCore().byId("editDeptName").setValue(oDepartment.DepartmentName)
-        sap.ui.getCore().byId("editDeptShortName").setValue(oDepartment.DepartmentShortName)
-
-        this._oEditDepartmentDialog.open()
+      
+        // Bind department data directly to dialog
+        this.getView().getModel().setProperty("/currentDepartment", oDepartment);
+        this._oEditDepartmentDialog.bindElement("/currentDepartment");
+        this._oEditDepartmentDialog.open();
       },
 
       // Delete department
@@ -273,66 +279,63 @@ sap.ui.define(
         this._oManageDepartmentsDialog.close()
       },
 
-     // Update _loadDepartments to return a Promise
-     _loadDepartments: function() {
-      return new Promise((resolve, reject) => {
-        fetch("http://localhost:3000/departments")
-          .then(response => response.json())
-          .then(data => {
-            this.getView().getModel().setProperty("/Departments", data);
-            resolve();
-          })
-          .catch(error => reject(error));
-      });
-    },
+      // Update _loadDepartments to return a Promise
+      _loadDepartments: function() {
+        return new Promise((resolve, reject) => {
+          fetch("http://localhost:3000/departments")
+            .then(response => response.json())
+            .then(data => {
+              console.log("Department loaded: ",data)
+              this.getView().getModel().setProperty("/Departments", data);
+              resolve();
+            })
+            .catch(error => reject(error));
+        });
+      },
 
       // Save edited department
-      onSaveEditDepartment: function () {
-        console.log("Saving edited department")
-        var oDeptCode = sap.ui.getCore().byId("editDeptCode")
-        var oDeptName = sap.ui.getCore().byId("editDeptName")
-        var oDeptShortName = sap.ui.getCore().byId("editDeptShortName")
-
-        if (!oDeptCode.getValue() || !oDeptName.getValue() || !oDeptShortName.getValue()) {
-          MessageBox.error("Please fill in all required fields.")
-          return
-        }
-
-        var oUpdatedDepartment = {
-          DepartmentName: oDeptName.getValue(),
-          DepartmentShortName: oDeptShortName.getValue(),
-          DepartmentCode: oDeptCode.getValue(),
-        }
-
-        fetch("http://localhost:3000/departments/" + oDeptCode.getValue(), {
+      onSaveEditDepartment: function() {
+        const oDepartment = this.getView().getModel().getProperty("/currentDepartment");
+        
+        fetch(`http://localhost:3000/departments/${oDepartment.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(oUpdatedDepartment),
+          body: JSON.stringify({
+            DepartmentName: oDepartment.DepartmentName,
+            DepartmentShortName: oDepartment.DepartmentShortName,
+            DepartmentCode: oDepartment.DepartmentCode
+          })
         })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Department updated successfully:", data)
-            MessageBox.success("Department updated successfully.")
-            this._oEditDepartmentDialog.close()
-            this._loadDepartments() // Refresh the department list
-          })
-          .catch((error) => {
-            console.error("Error updating department:", error)
-            MessageBox.error("Failed to update department. Please try again.")
-          })
+        .then(response => response.json())
+        .then(data => {
+          MessageBox.success("Department updated successfully");
+          this._loadDepartments().then(() => {
+            this._oEditDepartmentDialog.close();
+            this._oManageDepartmentsDialog.close();
+          });
+        })
+        .catch(error => {
+          console.error("Error updating department:", error);
+          MessageBox.error("Failed to update department");
+        });
       },
+
+      onCancelEditDepartment: function () {
+        this._oEditDepartmentDialog.close();
+      },
+
 
       // Employee Management
 
       // Open add employee dialog
-      onAddEmployee: function() {
+      onAddEmployee: function () {
         // First load departments
         this._loadDepartments().then(() => {
           if (!this._oAddEmployeeDialog) {
             this._oAddEmployeeDialog = sap.ui.xmlfragment(
-              "com.emls.view.AddEmployee", 
+              "com.emls.view.AddEmployee",
               this
             );
             this.getView().addDependent(this._oAddEmployeeDialog);
@@ -528,7 +531,7 @@ sap.ui.define(
         var oSource = oEvent.getSource();
         var oContext = oSource.getBindingContext(); // Remove "leaveRequests"
         var oLeaveRequest = oContext.getObject();
-        
+
         // Store in currentLeaveRequest model
         this.getView().getModel("currentLeaveRequest").setData({
           request: oLeaveRequest,
@@ -557,45 +560,45 @@ sap.ui.define(
 
       // New method to show the remarks dialog
       // In _showRemarksDialog function:
-_showRemarksDialog: function() {
-  if (!this._oRemarksDialog) {
-      this._oRemarksDialog = sap.ui.xmlfragment("com.emls.view.AdminRemarks", this);
-      console.log("Remarks dialog created:", this._oRemarksDialog);
-      this.getView().addDependent(this._oRemarksDialog);
-  }
-  
-  // Set dialog content based on action
-  const oModel = this.getView().getModel("currentLeaveRequest");
-  const sAction = oModel.getProperty("/action");
-  
-  oModel.setProperty("/dialogTitle", 
-      sAction === "approve" ? "Approve Leave Request" : "Reject Leave Request");
-  
-  oModel.setProperty("/actionMessage", 
-      sAction === "approve" 
-          ? "You are approving this leave request. Please provide approval remarks:"
-          : "You are rejecting this leave request. Please provide rejection reason:");
+      _showRemarksDialog: function () {
+        if (!this._oRemarksDialog) {
+          this._oRemarksDialog = sap.ui.xmlfragment("com.emls.view.AdminRemarks", this);
+          console.log("Remarks dialog created:", this._oRemarksDialog);
+          this.getView().addDependent(this._oRemarksDialog);
+        }
 
-  this._oRemarksDialog.open();
-},
+        // Set dialog content based on action
+        const oModel = this.getView().getModel("currentLeaveRequest");
+        const sAction = oModel.getProperty("/action");
 
-// Modified cancel handler
-onCancelRemarks: function() {
-  MessageBox.confirm(
-      "Are you sure you want to cancel? This request will remain in pending status.",
-      {
-          title: "Cancel Remarks",
-          onClose: function(oAction) {
+        oModel.setProperty("/dialogTitle",
+          sAction === "approve" ? "Approve Leave Request" : "Reject Leave Request");
+
+        oModel.setProperty("/actionMessage",
+          sAction === "approve"
+            ? "You are approving this leave request. Please provide approval remarks:"
+            : "You are rejecting this leave request. Please provide rejection reason:");
+
+        this._oRemarksDialog.open();
+      },
+
+      // Modified cancel handler
+      onCancelRemarks: function () {
+        MessageBox.confirm(
+          "Are you sure you want to cancel? This request will remain in pending status.",
+          {
+            title: "Cancel Remarks",
+            onClose: function (oAction) {
               if (oAction === MessageBox.Action.OK) {
-                  const oData = this.getView().getModel("currentLeaveRequest").getData();
-                  console.log("Cancelling request:", oData.request);
-                  this._updateLeaveStatus(oData.request.id, 2); // Set to pending
-                  this._oRemarksDialog.close();
+                const oData = this.getView().getModel("currentLeaveRequest").getData();
+                console.log("Cancelling request:", oData.request);
+                this._updateLeaveStatus(oData.request.id, 2); // Set to pending
+                this._oRemarksDialog.close();
               }
-          }.bind(this)
-      }
-  );
-},
+            }.bind(this)
+          }
+        );
+      },
 
       // New method to handle remarks submission
       onSubmitRemarks: function () {
@@ -622,15 +625,15 @@ onCancelRemarks: function() {
           oModel.getProperty("/ApprovedRequests"),
           oModel.getProperty("/RejectedRequests")
         );
-      
+
         const oLeaveRequest = aLeaveRequests.find(request => request.id === leaveId);
-         console.log("Updating leave request:", oLeaveRequest)
-         console.log("What is this remarks:",remarks)
+        console.log("Updating leave request:", oLeaveRequest)
+        console.log("What is this remarks:", remarks)
         if (!oLeaveRequest) {
           MessageBox.error("Leave request not found in local data");
           return;
         }
-      
+
         const payload = {
           Status: newStatus,
           AdminRemark: remarks,
@@ -641,21 +644,21 @@ onCancelRemarks: function() {
           Description: oLeaveRequest.description,
           empid: oLeaveRequest.empid
         };
-      
+
         fetch(`http://localhost:3000/leave/${leaveId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         })
-        .then(response => response.json())
-        .then(data => {
-          console.log("Update response:", data);
-          this._loadLeaveRequests();
-        })
-        .catch(error => {
-          console.error("Update error:", error);
-          MessageBox.error("Update failed: " + error.message);
-        });
+          .then(response => response.json())
+          .then(data => {
+            console.log("Update response:", data);
+            this._loadLeaveRequests();
+          })
+          .catch(error => {
+            console.error("Update error:", error);
+            MessageBox.error("Update failed: " + error.message);
+          });
       },
 
       // Load employees from server
