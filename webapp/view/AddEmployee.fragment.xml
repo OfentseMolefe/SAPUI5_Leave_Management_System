@@ -5,38 +5,40 @@
     <Dialog title="Add New Employee">
         <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
             <f:content>
-                <Label text="Employee ID" required="true" />
-                <Input id="empId" />
+                <!-- Add model binding to all fields -->
+                <Label text="Employee ID" />
+                <Input id="empId" value="{/EmpId}" editable="false" />
                 <Label text="First Name" required="true" />
-                <Input id="firstName" />
+                <Input id="firstName" value="{/FirstName}" />
                 <Label text="Last Name" required="true" />
-                <Input id="lastName" />
+                <Input id="lastName" value="{/LastName}" />
                 <Label text="Email ID" required="true" />
-                <Input id="emailId" type="Email" />
+                <Input id="emailId" value="{/EmailId}" type="Email" />
                 <Label text="Password" required="true" />
-                <Input id="password" type="Password" />
+                <Input id="password" value="{/Password}" type="Password" />
                 <Label text="Gender" required="true" />
-                <Select id="gender">
+                <Select id="gender" selectedKey="{/Gender}">
                     <items>
                         <core:Item key="M" text="Male" />
                         <core:Item key="F" text="Female" />
-                        <core:Item key="O" text="Other" />
                     </items>
                 </Select>
                 <Label text="Date of Birth" required="true" />
-                <DatePicker id="dateOfBirth" />
+                <DatePicker id="dateOfBirth" value="{/DateOfBirth}" />
                 <Label text="Department" required="true" />
-                <Select id="department" items="{/Departments}">
-                    <core:Item key="{DepartmentCode}" text="{DepartmentName}" />
+                <Select id="department" selectedKey="{/Department}" items="{departments>/}">
+                    <core:Item key="{departments>DepartmentName}" text="{departments>DepartmentName} ({departments>DepartmentShortName})" />
                 </Select>
                 <Label text="Address" />
-                <Input id="address" />
+                <Input id="address" value="{/Address}" />
                 <Label text="City" />
-                <Input id="city" />
+                <Input id="city" value="{/City}" />
                 <Label text="Country" />
-                <Input id="country" />
+                <Input id="country" value="{/Country}" />
+                <Label text="Phone Number" />
+                <Input id="phoneNumber" value="{/Phonenumber}" />
                 <Label text="Status" required="true" />
-                <Select id="status">
+                <Select id="status" selectedKey="{/Status}">
                     <items>
                         <core:Item key="Active" text="Active" />
                         <core:Item key="Inactive" text="Inactive" />

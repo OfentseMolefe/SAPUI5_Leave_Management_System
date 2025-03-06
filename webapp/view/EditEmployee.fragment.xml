@@ -17,7 +17,6 @@
                 <Select selectedKey="{/Gender}">
                     <core:Item key="M" text="Male" />
                     <core:Item key="F" text="Female" />
-                    <core:Item key="O" text="Other" />
                 </Select>
                 <Label text="Date of Birth" required="true" />
                 <DatePicker value="{/Dob}" />
@@ -27,7 +26,7 @@
                 selectedKey="{/Department}" 
                 items="{departments>/}">  <!-- Simplified binding path -->
                 <core:Item 
-                  key="{departments>DepartmentCode}" 
+                  key="{departments>DepartmentName}" 
                   text="{departments>DepartmentName} ({departments>DepartmentShortName})" />
               </Select>
                 <Label text="Address" />
