@@ -20,8 +20,15 @@
                         <Text text="{Department}" />
                         <Text text="{Status}" />
                         <HBox>
-                            <Button icon="sap-icon://edit" press="onEditEmployee" />
-                            <Button icon="sap-icon://delete" press="onDeleteEmployee" />
+                            <Button icon="sap-icon://edit"
+                             press="onEditEmployee" 
+                             tooltip="Edit"
+                             />
+                            <Button icon="sap-icon://delete" 
+                            press="onDeleteEmployee" 
+                            tooltip="Delete"
+                            type="Reject"
+                            />
                         </HBox>
                     </cells>
                 </ColumnListItem>

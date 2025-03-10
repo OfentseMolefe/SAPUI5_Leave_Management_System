@@ -6,15 +6,28 @@
         <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
             <f:content>
                 <Label text="Department Code" required="true"/>
-                <Input value="{DepartmentCode}" editable="false"/>
+                <Input value="{/DepartmentCode}" 
+                       editable="false"
+                       placeholder="Auto-generated"/>
+                
                 <Label text="Department Name" required="true"/>
-                <Input value="{DepartmentName}"/>
+                <Input value="{/DepartmentName}" 
+                       placeholder="Enter department name"
+                       valueStateText="Department name is required"
+                       valueState="{= !/${/DepartmentName} ? 'Error' : 'None' }"/>
+                
                 <Label text="Department Short Name" required="true"/>
-                <Input value="{DepartmentShortName}"/>
+                <Input value="{/DepartmentShortName}" 
+                       placeholder="Enter short name"
+                       valueStateText="Short name is required"
+                       valueState="{= !/${/DepartmentShortName} ? 'Error' : 'None' }"/>
             </f:content>
         </f:SimpleForm>
         <buttons>
-            <Button text="Save" press="onSaveEditDepartment" type="Emphasized"/>
+            <Button text="Save" 
+                    press="onSaveEditDepartment" 
+                    type="Emphasized"
+                    enabled="{= !!${/DepartmentName} &amp;&amp; !!${/DepartmentShortName} }"/>
             <Button text="Cancel" press="onCancelEditDepartment"/>
         </buttons>
     </Dialog>

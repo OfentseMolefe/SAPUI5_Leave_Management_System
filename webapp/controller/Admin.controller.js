@@ -23,14 +23,16 @@ sap.ui.define(
 
         // Load real data
 
-        this._loadDepartments();
+
         this._loadEmployees();
         this._loadLeaveTypes();
         this._loadLeaveRequests();
 
         // Initialize a model for the current leave request being processed
         this.getView().setModel(new JSONModel(), "currentLeaveRequest")
+
         this.getView().setModel(new JSONModel([]), "departments");
+        this._loadDepartments();
       },
 
       // Load leave requests from server
@@ -217,13 +219,13 @@ sap.ui.define(
 
       // Open manage departments dialog
       onManageDepartments: function () {
-        // Load departments first
         this._loadDepartments().then(() => {
           if (!this._oManageDepartmentsDialog) {
             this._oManageDepartmentsDialog = sap.ui.xmlfragment(
               "com.emls.view.ManageDepartments",
               this
             );
+            // Add dialog as dependent to inherit models
             this.getView().addDependent(this._oManageDepartmentsDialog);
           }
           this._oManageDepartmentsDialog.open();
@@ -232,49 +234,51 @@ sap.ui.define(
 
       // Edit department
       onEditDepartment: function (oEvent) {
-        const oRow = oEvent.getSource().getParent().getParent();
-        const oDepartment = oRow.getBindingContext().getObject();
+        const oButton = oEvent.getSource();
+        // Get department data from button's binding context
+        const oDepartment = oButton.getBindingContext("departments").getObject();
 
+        // Create dialog if it doesn't exist
         if (!this._oEditDepartmentDialog) {
           this._oEditDepartmentDialog = sap.ui.xmlfragment(
-            "com.emls.view.EditDepartment",
+            "com.emls.view.EditDepartment",  // Your fragment name
             this
           );
           this.getView().addDependent(this._oEditDepartmentDialog);
         }
 
-        // Bind department data directly to dialog
-        this.getView().getModel().setProperty("/currentDepartment", oDepartment);
-        this._oEditDepartmentDialog.bindElement("/currentDepartment");
+        // Create a temporary model for the dialog
+        const oEditModel = new JSONModel(oDepartment);
+        this._oEditDepartmentDialog.setModel(oEditModel);
+
+        // Open the dialog
         this._oEditDepartmentDialog.open();
       },
 
-      // Delete department
+      // Delete Department
       onDeleteDepartment: function (oEvent) {
-        console.log("Deleting department")
-        var oContext = oEvent.getSource().getBindingContext()
-        var oDepartment = oContext.getObject()
-        MessageBox.confirm("Are you sure you want to delete " + oDepartment.DepartmentName + "?", {
-          onClose: function (oAction) {
-            if (oAction === MessageBox.Action.OK) {
-              fetch("http://localhost:3000/departments/" + oDepartment.id, {
-                method: "DELETE",
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  console.log("Department deleted successfully:", data)
-                  MessageBox.success("Department deleted successfully.")
-                  this._loadDepartments() // Refresh the department list
-                })
-                .catch((error) => {
-                  console.error("Error deleting department:", error)
-                  MessageBox.error("Failed to delete department. Please try again.")
-                })
-            }
-          }.bind(this),
-        })
-      },
+        const oButton = oEvent.getSource();
+        const oDepartment = oButton.getBindingContext("departments").getObject();
+        console.log("Deleting:", oDepartment);
 
+        MessageBox.confirm(`Delete ${oDepartment.DepartmentName}?`, {
+          onClose: (sAction) => {
+            if (sAction === MessageBox.Action.OK) {
+              fetch(`http://localhost:3000/departments/${oDepartment.id}`, {
+                method: "DELETE"
+              })
+                .then(() => {
+                  this._loadDepartments(); // Refresh data
+                  MessageBox.success("Department deleted");
+                })
+                .catch(error => {
+                  console.error("Delete failed:", error);
+                  MessageBox.error("Delete failed");
+                });
+            }
+          }
+        });
+      },
       // Close manage departments dialog
       onCloseManageDepartments: function () {
         console.log("Closing manage departments dialog")
@@ -287,41 +291,65 @@ sap.ui.define(
           fetch("http://localhost:3000/departments")
             .then(response => response.json())
             .then(data => {
-              const oModel = new JSONModel(data);
-              this.getView().setModel(oModel, "departments");
+              const oModel = this.getView().getModel("departments");
+              oModel.setData(data);
+              console.log("Departments loaded: check", data);
               resolve();
             })
-            .catch(error => reject(error));
+            .catch(error => {
+              console.error("Department load error:", error);
+              reject(error);
+            });
         });
       },
 
       // Save edited department
-      onSaveEditDepartment: function () {
-        const oDepartment = this.getView().getModel().getProperty("/currentDepartment");
-
-        fetch(`http://localhost:3000/departments/${oDepartment.id}`, {
+      onSaveEditDepartment: function() {
+        const oDialog = this._oEditDepartmentDialog;
+        const oData = oDialog.getModel().getData();
+      
+        // Validation
+        const aErrors = [];
+        if (!oData.DepartmentName?.trim()) {
+          aErrors.push("Department Name");
+        }
+        if (!oData.DepartmentShortName?.trim()) {
+          aErrors.push("Department Short Name");
+        }
+      
+        if (aErrors.length > 0) {
+          MessageBox.error(`Required fields missing:\n${aErrors.join("\n")}`);
+          return;
+        }
+      
+        // Show loading indicator
+        oDialog.setBusy(true);
+        
+        fetch(`http://localhost:3000/departments/${oData.id}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            DepartmentName: oDepartment.DepartmentName,
-            DepartmentShortName: oDepartment.DepartmentShortName,
-            DepartmentCode: oDepartment.DepartmentCode
+            DepartmentName: oData.DepartmentName.trim(),
+            DepartmentShortName: oData.DepartmentShortName.trim(),
+            DepartmentCode: oData.DepartmentCode
           })
         })
-          .then(response => response.json())
-          .then(data => {
-            MessageBox.success("Department updated successfully");
-            this._loadDepartments().then(() => {
-              this._oEditDepartmentDialog.close();
-              //this._oManageDepartmentsDialog.close();
-            });
-          })
-          .catch(error => {
-            console.error("Error updating department:", error);
-            MessageBox.error("Failed to update department");
-          });
+        .then(response => {
+          if (!response.ok) throw new Error("Server returned error");
+          return response.json();
+        })
+        .then(() => {
+          MessageBox.success("Department updated successfully");
+          this._loadDepartments();
+          oDialog.close();
+        })
+        .catch(error => {
+          console.error("Update error:", error);
+          MessageBox.error("Failed to update department. Please try again.");
+        })
+        .finally(() => {
+          oDialog.setBusy(false); // Hide loading indicator
+        });
       },
 
       onCancelEditDepartment: function () {
@@ -330,81 +358,94 @@ sap.ui.define(
 
 
       // Employee Management
-
-      // Open add employee dialog
       onAddEmployee: function () {
-        // First load departments
-        this._loadDepartments().then(() => {
+        // First generate EMPID and load departments
+        Promise.all([
+          fetch("http://localhost:3000/employees/next-empid").then(res => res.json()),
+          this._loadDepartments()
+        ]).then(([empIdData, _]) => {
           if (!this._oAddEmployeeDialog) {
             this._oAddEmployeeDialog = sap.ui.xmlfragment(
               "com.emls.view.AddEmployee",
               this
             );
             this.getView().addDependent(this._oAddEmployeeDialog);
+
+            // Initialize model with empty data and generated EMPID
+            const oModel = new JSONModel({
+              EmpId: empIdData.EmpId,
+              FirstName: "",
+              LastName: "",
+              EmailId: "",
+              Password: "",
+              Gender: "",
+              DateOfBirth: null,
+              Department: "",
+              Address: "",
+              City: "",
+              Country: "",
+              Phonenumber: "",
+              Status: "Active"
+            });
+            this._oAddEmployeeDialog.setModel(oModel);
           }
           this._oAddEmployeeDialog.open();
         }).catch(error => {
-          MessageBox.error("Failed to load departments");
+          console.error("Initialization error:", error);
+          MessageBox.error("Failed to initialize employee form");
         });
       },
 
-      // Save new employee
+      // Updated onSaveEmployee function
       onSaveEmployee: function () {
-        console.log("Saving new employee")
-        var oEmployee = {
-          EmpId: sap.ui.getCore().byId("empId").getValue(),
-          FirstName: sap.ui.getCore().byId("firstName").getValue(),
-          LastName: sap.ui.getCore().byId("lastName").getValue(),
-          EmailId: sap.ui.getCore().byId("emailId").getValue(),
-          Password: sap.ui.getCore().byId("password").getValue(),
-          Gender: sap.ui.getCore().byId("gender").getSelectedKey(),
-          DateOfBirth: sap.ui.getCore().byId("dateOfBirth").getDateValue(),
-          Department: sap.ui.getCore().byId("department").getSelectedKey(),
-          Address: sap.ui.getCore().byId("address").getValue(),
-          City: sap.ui.getCore().byId("city").getValue(),
-          Country: sap.ui.getCore().byId("country").getValue(),
-          Status: sap.ui.getCore().byId("status").getSelectedKey(),
+        const oModel = this._oAddEmployeeDialog.getModel();
+        const oData = oModel.getData();
+
+        // Convert date to ISO string
+        if (oData.DateOfBirth instanceof Date) {
+          oData.DateOfBirth = oData.DateOfBirth.toISOString().split('T')[0];
         }
 
-        if (
-          !oEmployee.EmpId ||
-          !oEmployee.FirstName ||
-          !oEmployee.LastName ||
-          !oEmployee.EmailId ||
-          !oEmployee.Password ||
-          !oEmployee.Gender ||
-          !oEmployee.DateOfBirth ||
-          !oEmployee.Department ||
-          !oEmployee.Status
-        ) {
-          MessageBox.error("Please fill in all required fields.")
-          return
+        // Validation
+        const aRequiredFields = [
+          'FirstName', 'LastName', 'EmailId', 'Password',
+          'Gender', 'DateOfBirth', 'Department', 'Status'
+        ];
+
+        const aMissingFields = aRequiredFields.filter(field => !oData[field]);
+
+        if (aMissingFields.length > 0) {
+          MessageBox.error(`Missing required fields: ${aMissingFields.join(', ')}`);
+          return;
         }
+
+        // Prepare payload
+        const oPayload = {
+          ...oData,
+          Dob: oData.DateOfBirth, // Match server expectation
+          Status: oData.Status === "Active" ? 1 : 0,
+          Department: oData.Department
+        };
 
         fetch("http://localhost:3000/employees", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(oEmployee),
+          body: JSON.stringify(oPayload)
         })
-          .then((response) => response.json())
-          .then((data) => {
+          .then(response => response.json())
+          .then(data => {
             if (data.message === "Employee created successfully") {
-              MessageBox.success("Employee added successfully.", {
-                onClose: function () {
-                  this._oAddEmployeeDialog.close()
-                  this._loadEmployees() // Refresh the employee list
-                }.bind(this),
-              })
-            } else {
-              MessageBox.error(data.message || "Failed to add employee. Please try again.")
+              MessageBox.success("Employee created successfully");
+              this._oAddEmployeeDialog.close();
+              this._loadEmployees();
             }
           })
-          .catch((error) => {
-            console.error("Error:", error)
-            MessageBox.error("An error occurred. Please try again.")
-          })
+          .catch(error => {
+            console.error("Save error:", error);
+            MessageBox.error("Failed to create employee");
+          });
       },
 
       // Cancel add employee
@@ -432,31 +473,32 @@ sap.ui.define(
           });
       },
 
-      // Edit employee
-      // Update the onEditEmployee method
       // In onEditEmployee method
       onEditEmployee: function (oEvent) {
-        const oEmployee = oEvent.getSource().getBindingContext().getObject();
+        const oRow = oEvent.getSource().getParent().getParent();
+        const oEmployee = oRow.getBindingContext().getObject();
 
-        // Load departments first
+        // Refresh departments and open dialog
         this._loadDepartments().then(() => {
           if (!this._oEditEmployeeDialog) {
             this._oEditEmployeeDialog = sap.ui.xmlfragment(
               "com.emls.view.EditEmployee",
               this
             );
-            // Bind departments model
-            const oDepartmentsModel = this.getView().getModel("departments");
-            console.log("Departments model: You have to edite ", oDepartmentsModel.getData());
-            this._oEditEmployeeDialog.setModel(oDepartmentsModel, "departments");
+            this.getView().addDependent(this._oEditEmployeeDialog);
           }
 
-          // Create edit model with proper date handling
+          // Bind departments model to dialog
+          this._oEditEmployeeDialog.setModel(
+            this.getView().getModel("departments"),
+            "departments"
+          );
+
+          // Initialize employee data
           const oEditModel = new JSONModel({
             ...oEmployee,
             Dob: oEmployee.Dob ? new Date(oEmployee.Dob) : null
           });
-
           this._oEditEmployeeDialog.setModel(oEditModel);
           this._oEditEmployeeDialog.open();
         });
@@ -742,7 +784,7 @@ sap.ui.define(
               MessageBox.success("Employee updated successfully");
               this._loadEmployees().then(() => {
                 this._oEditEmployeeDialog.close();
-               // this._oManageEmployeesDialog.close();
+                // this._oManageEmployeesDialog.close();
               });
             }
           })

@@ -2,37 +2,40 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core">
     <Dialog title="Manage Departments" contentWidth="50%">
-        <Table id="departmentsTable" items="{/Departments}">
+        <Table id="departmentsTable" items="{departments>/}">
             <columns>
-                <Column width="20%"><Text text="Code" /></Column>
-                <Column width="30%"><Text text="Name" /></Column>
-                <Column width="30%"><Text text="Short Name" /></Column>
-                <Column width="20%"><Text text="Actions" /></Column>
+                <Column width="20%"><Text text="Code"/></Column>
+                <Column width="30%"><Text text="Name"/></Column>
+                <Column width="30%"><Text text="Short Name"/></Column>
+                <Column width="20%"><Text text="Actions"/></Column>
             </columns>
             <items>
                 <ColumnListItem>
                     <cells>
-                        <Text text="{DepartmentCode}" />
-                        <Text text="{DepartmentName}" />
-                        <Text text="{DepartmentShortName}" />
+                        <Text text="{departments>DepartmentCode}"/>
+                        <Text text="{departments>DepartmentName}"/>
+                        <Text text="{departments>DepartmentShortName}"/>
                         <HBox justifyContent="Center">
+                            <!-- Bind button to current department -->
                             <Button 
                                 icon="sap-icon://edit" 
-                                press="onEditDepartment" 
+                                press="onEditDepartment"
                                 tooltip="Edit"
-                                class="sapUiTinyMarginEnd"/>
+                                class="sapUiTinyMarginEnd"
+                                binding="{departments>}" /> <!-- Key change -->
                             <Button 
                                 icon="sap-icon://delete" 
-                                press="onDeleteDepartment" 
+                                press="onDeleteDepartment"
                                 tooltip="Delete"
-                                type="Reject"/>
+                                type="Reject"
+                                binding="{departments>}" /> <!-- Key change -->
                         </HBox>
                     </cells>
                 </ColumnListItem>
             </items>
         </Table>
         <buttons>
-            <Button text="Close" press="onCloseManageDepartments" />
+            <Button text="Close" press="onCloseManageDepartments"/>
         </buttons>
     </Dialog>
 </core:FragmentDefinition>
