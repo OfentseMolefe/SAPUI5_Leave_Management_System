@@ -190,21 +190,23 @@ sap.ui.define(
         MessageBox.information("Calendar view is not implemented yet.")
       },
 
-      onLogOut: function () {
+      onLogOut: function() {
         MessageBox.confirm("Are you sure you want to log out?", {
-          onClose: function (oAction) {
+          onClose: function(oAction) {
             if (oAction === MessageBox.Action.OK) {
-              // Clear component models
+              // Clear all models and storage
               this.getOwnerComponent().setModel(new JSONModel({}), "userData");
               this.getOwnerComponent().setModel(new JSONModel({}), "adminData");
+              localStorage.clear();
               
-              // Clear localStorage
-              localStorage.removeItem('userData');
-              localStorage.removeItem('adminData');
-              localStorage.removeItem('userRole');
+              // Destroy current view
+              this.getView().destroy();
               
-              // Navigate to login
-              this.getOwnerComponent().getRouter().navTo("RouteMainView");
+              // Navigate to main view with force refresh
+              this.getOwnerComponent().getRouter().navTo("RouteMainView", {}, true); // true forces reload
+              
+              // Clear fragment cache
+              sap.ui.core.Fragment.invalidateAll();
             }
           }.bind(this),
         });
