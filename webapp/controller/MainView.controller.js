@@ -42,7 +42,7 @@ sap.ui.define(
         }
       },
 
-      loginEmployee: function (sEmail, sPassword) {
+      loginEmployee: function (sEmail, sPassword, oDialog) {
         fetch("http://localhost:3000/login/employee", {
           method: "POST",
           headers: {
@@ -56,12 +56,21 @@ sap.ui.define(
           .then((response) => response.json())
           .then((data) => {
             if (data.message === "Login successful") {
-              console.log("Login successful, user data:", data.employee)
-              
-              // Store the entire employee object
-              var oUserModel = new JSONModel(data.employee)
-              this.getOwnerComponent().setModel(oUserModel, "userData")
-              this.getOwnerComponent().getRouter().navTo("RouteApply")
+              // Remove sensitive data before storing
+              const { Password, ...sanitizedUser } = data.employee;
+
+              // Update component model
+              var oUserModel = new JSONModel(sanitizedUser);
+              this.getOwnerComponent().setModel(oUserModel, "userData");
+
+              // Store in localStorage
+              localStorage.setItem('userData', JSON.stringify(sanitizedUser));
+              localStorage.setItem('userRole', 'employee');
+
+              // Navigate and close dialog
+              this.getOwnerComponent().getRouter().navTo("RouteApply");
+              oDialog.close();
+
             } else {
               MessageBox.error("Invalid employee credentials. Please try again.")
             }
@@ -86,11 +95,19 @@ sap.ui.define(
           .then((response) => response.json())
           .then((data) => {
             if (data.message === "Login successful") {
-              // Store user data in the component
-              this.getOwnerComponent().setModel(new JSONModel(data.admin), "adminData")
-              console.log("Login successful, admin data:", data.admin)
-              oDialog.close()
-              this.getOwnerComponent().getRouter().navTo("RouteAdmin")
+              // Remove sensitive data
+              const { Password, ...sanitizedAdmin } = data.admin;
+
+              // Update component model
+              this.getOwnerComponent().setModel(new JSONModel(sanitizedAdmin), "adminData");
+
+              // Store in localStorage
+              localStorage.setItem('adminData', JSON.stringify(sanitizedAdmin));
+              localStorage.setItem('userRole', 'admin');
+
+              // Navigate and close dialog
+              oDialog.close();
+              this.getOwnerComponent().getRouter().navTo("RouteAdmin");
             } else {
               MessageBox.error("Invalid admin credentials. Please try again.")
             }

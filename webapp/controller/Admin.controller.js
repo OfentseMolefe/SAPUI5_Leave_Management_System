@@ -554,6 +554,10 @@ sap.ui.define(
               // Navigate to MainView
               var oRouter = sap.ui.core.UIComponent.getRouterFor(this)
               oRouter.navTo("RouteMainView")
+              localStorage.removeItem('userData');
+              localStorage.removeItem('userRole');
+              localStorage.removeItem('adminData');
+              localStorage.removeItem('adminRole');
             }
           }.bind(this),
         })

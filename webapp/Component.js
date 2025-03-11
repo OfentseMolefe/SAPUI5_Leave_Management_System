@@ -21,6 +21,18 @@ sap.ui.define([
 
             // enable routing
             this.getRouter().initialize();
+            
+            // Check for existing sessions
+            const userRole = localStorage.getItem('userRole');
+            const router = this.getRouter();
+
+            if (userRole === 'employee' && localStorage.getItem('userData')) {
+                router.navTo("RouteApply");
+            } else if (userRole === 'admin' && localStorage.getItem('adminData')) {
+                router.navTo("RouteAdmin");
+            } else {
+                router.navTo("RouteMainView");
+            }
         }
     });
 });

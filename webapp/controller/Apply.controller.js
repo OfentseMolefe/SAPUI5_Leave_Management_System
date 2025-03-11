@@ -10,6 +10,25 @@ sap.ui.define(
   (Controller, MessageBox, Fragment, DateFormat, Calendar, JSONModel) =>
     Controller.extend("com.emls.controller.Apply", {
       onInit: function () {
+        // Check for existing session
+        const userData = localStorage.getItem('userData');
+        const userRole = localStorage.getItem('userRole');
+       
+
+        // Redirect if no valid session
+        if (userRole !== 'employee' || !userData) {
+          this.getOwnerComponent().getRouter().navTo("RouteMainView");
+          return;
+        }
+
+        // Load user data into component model
+        if (!this.getOwnerComponent().getModel("userData")) {
+          this.getOwnerComponent().setModel(
+            new JSONModel(JSON.parse(userData)),
+            "userData"
+          );
+        }
+
         this._loadEmployeeData()
         this._loadLeaveTypes()
 
@@ -20,6 +39,7 @@ sap.ui.define(
           Description: "",
         })
         this.getView().setModel(oLeaveApplicationModel, "leaveApplication")
+
       },
 
       _loadEmployeeData: function () {
@@ -49,7 +69,7 @@ sap.ui.define(
           .then((data) => {
             var latestLeave = data[data.length - 1];
             const oModel = this.getView().getModel("employee");
-            
+
             if (latestLeave) {
               oModel.setProperty("/leaveStatus", latestLeave.Status);
               oModel.setProperty("/latestLeaveType", latestLeave.LeaveType);
@@ -65,8 +85,8 @@ sap.ui.define(
           });
       }
       ,
-      formatLeaveStatus: function(status) {
-        switch(status) {
+      formatLeaveStatus: function (status) {
+        switch (status) {
           case 0: return "Submitted";
           case 1: return "Approved";
           case 2: return "Pending Approval";
@@ -74,9 +94,9 @@ sap.ui.define(
           default: return "No Active Leave";
         }
       },
-      
-      formatStatusIcon: function(status) {
-        switch(status) {
+
+      formatStatusIcon: function (status) {
+        switch (status) {
           case 0: return "sap-icon://status-in-process";  // Submitted
           case 1: return "sap-icon://accept";             // Approved
           case 2: return "sap-icon://pending";            // Pending
@@ -84,7 +104,7 @@ sap.ui.define(
           default: return "sap-icon://bed";               // No active leave
         }
       },
-      
+
       onOpenMenu: function (oEvent) {
         if (!this._oMenu) {
           this._oMenu = sap.ui.xmlfragment("com.emls.view.SidebarMenu", this)
@@ -174,12 +194,20 @@ sap.ui.define(
         MessageBox.confirm("Are you sure you want to log out?", {
           onClose: function (oAction) {
             if (oAction === MessageBox.Action.OK) {
-              this.getOwnerComponent().setModel(new JSONModel({}), "userData")
-              var oRouter = sap.ui.core.UIComponent.getRouterFor(this)
-              oRouter.navTo("RouteMainView")
+              // Clear component models
+              this.getOwnerComponent().setModel(new JSONModel({}), "userData");
+              this.getOwnerComponent().setModel(new JSONModel({}), "adminData");
+              
+              // Clear localStorage
+              localStorage.removeItem('userData');
+              localStorage.removeItem('adminData');
+              localStorage.removeItem('userRole');
+              
+              // Navigate to login
+              this.getOwnerComponent().getRouter().navTo("RouteMainView");
             }
           }.bind(this),
-        })
+        });
       },
 
       onViewLeaveDetails: function () {
