@@ -546,18 +546,20 @@ sap.ui.define(
 
       // Logout function
       onLogOut: function () {
-        console.log("Logout requested")
-        // Handle logout action
+        console.log("Logout requested");
+        
         MessageBox.confirm("Are you sure you want to log out?", {
           onClose: function (oAction) {
             if (oAction === MessageBox.Action.OK) {
-              // Navigate to MainView
-              var oRouter = sap.ui.core.UIComponent.getRouterFor(this)
-              oRouter.navTo("RouteMainView")
-              localStorage.removeItem('userData');
-              localStorage.removeItem('userRole');
-              localStorage.removeItem('adminData');
-              localStorage.removeItem('adminRole');
+              var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+              localStorage.removeItem("userData");
+              localStorage.removeItem("userRole");
+              localStorage.removeItem("adminData");
+              localStorage.removeItem("adminRole");
+              
+              clearTimeout(this._sessionTimeout);
+
+              oRouter.navTo("RouteMainView");
             }
           }.bind(this),
         })

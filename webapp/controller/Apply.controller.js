@@ -13,7 +13,7 @@ sap.ui.define(
         // Check for existing session
         const userData = localStorage.getItem('userData');
         const userRole = localStorage.getItem('userRole');
-       
+
 
         // Redirect if no valid session
         if (userRole !== 'employee' || !userData) {
@@ -130,83 +130,109 @@ sap.ui.define(
         this._oProfileDialog.close()
       },
 
+      // change password
+
       onChangePassword: function () {
         if (!this._oChangePasswordDialog) {
-          this._oChangePasswordDialog = sap.ui.xmlfragment("com.emls.view.ChangePassword", this)
-          this.getView().addDependent(this._oChangePasswordDialog)
+          this._oChangePasswordDialog = sap.ui.xmlfragment("ChangePasswordDialog", "com.emls.view.ChangePassword", this);
+          this.getView().addDependent(this._oChangePasswordDialog);
         }
-        this._oChangePasswordDialog.open()
+        this._oChangePasswordDialog.open();
       },
-
       onSubmitChangePassword: function () {
-        var oCurrentPassword = sap.ui.getCore().byId("currentPassword")
-        var oNewPassword = sap.ui.getCore().byId("newPassword")
-        var oConfirmPassword = sap.ui.getCore().byId("confirmPassword")
-
+        // Ensure fragment exists
+        if (!this._oChangePasswordDialog) {
+            MessageBox.error("Error: Change Password Dialog not found.");
+            return;
+        }
+    
+        // ✅ Correct way to access fragment controls using Fragment.byId()
+        var oCurrentPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "currentPassword");
+        var oNewPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "newPassword");
+        var oConfirmPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "confirmPassword");
+    
+        // Check if inputs were found
+        if (!oCurrentPassword || !oNewPassword || !oConfirmPassword) {
+            MessageBox.error("Error: Could not find input fields.");
+            return;
+        }
+    
+        // 2. Validate inputs
         if (!oCurrentPassword.getValue() || !oNewPassword.getValue() || !oConfirmPassword.getValue()) {
-          MessageBox.error("Please fill in all fields.")
-          return
+            MessageBox.error("Please fill in all fields.");
+            return;
         }
-
+    
         if (oNewPassword.getValue() !== oConfirmPassword.getValue()) {
-          MessageBox.error("New password and confirm password do not match.")
-          return
+            MessageBox.error("New password and confirm password do not match.");
+            return;
         }
-
-        var oUserData = this.getView().getModel("employee").getData()
-
-        fetch("http://localhost:3000/employees/" + oUserData.id, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Password: oNewPassword.getValue(),
-          }),
+    
+        // 3. Get user data
+        var oUserData = this.getView().getModel("employee").getData();
+    
+        // 4. Call the correct endpoint with proper parameters
+        fetch(`http://localhost:3000/employees/${oUserData.id}/change-password`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                CurrentPassword: oCurrentPassword.getValue(),
+                NewPassword: oNewPassword.getValue()
+            }),
         })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.message === "Employee updated successfully") {
-              MessageBox.success("Password changed successfully.", {
-                onClose: function () {
-                  this._oChangePasswordDialog.close()
-                }.bind(this),
-              })
-            } else {
-              MessageBox.error(data.message || "Failed to change password. Please try again.")
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
             }
-          })
-          .catch((error) => {
-            console.error("Error:", error)
-            MessageBox.error("An error occurred. Please try again.")
-          })
-      },
+            return response.json();
+        })
+        .then(data => {
+            if (data.message === "Password changed successfully") {
+                MessageBox.success("Password changed successfully!", {
+                    onClose: () => {
+                        // Clear fields
+                        oCurrentPassword.setValue("");
+                        oNewPassword.setValue("");
+                        oConfirmPassword.setValue("");
+                        this._oChangePasswordDialog.close();
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Password change error:", error);
+            const errorMessage = error.error || "Failed to change password. Please try again.";
+            MessageBox.error(errorMessage);
+        });
+    },    
 
       onCancelChangePassword: function () {
-        this._oChangePasswordDialog.close()
+        if (this._oChangePasswordDialog) {
+          this._oChangePasswordDialog.close();
+        }
       },
 
       onViewCalendar: () => {
         MessageBox.information("Calendar view is not implemented yet.")
       },
 
-      onLogOut: function() {
+      onLogOut: function () {
+        console.log("Logout requested");
+
         MessageBox.confirm("Are you sure you want to log out?", {
-          onClose: function(oAction) {
+          onClose: function (oAction) {
             if (oAction === MessageBox.Action.OK) {
-              // Clear all models and storage
-              this.getOwnerComponent().setModel(new JSONModel({}), "userData");
-              this.getOwnerComponent().setModel(new JSONModel({}), "adminData");
-              localStorage.clear();
-              
-              // Destroy current view
-              this.getView().destroy();
-              
-              // Navigate to main view with force refresh
-              this.getOwnerComponent().getRouter().navTo("RouteMainView", {}, true); // true forces reload
-              
-              // Clear fragment cache
-              sap.ui.core.Fragment.invalidateAll();
+              var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+              localStorage.removeItem("userData");
+              localStorage.removeItem("userRole");
+              localStorage.removeItem("adminData");
+              localStorage.removeItem("adminRole");
+
+              clearTimeout(this._sessionTimeout);
+
+              oRouter.navTo("RouteMainView");
             }
           }.bind(this),
         });
