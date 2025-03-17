@@ -26,3 +26,12 @@
     background-size: cover !important;
     background-position: center !important;
 }
+.sapUiCalItemType05 > .sapUiCalItemText {
+    background-color: #87CEEB !important;
+    border-radius: 50%;
+    color: #000 !important;
+}
+
+.sapUiCalItemSel.sapUiCalItemType05 > .sapUiCalItemText {
+    border: 2px solid #000 !important;
+}

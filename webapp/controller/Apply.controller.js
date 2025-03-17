@@ -14,6 +14,8 @@ sap.ui.define(
         const userData = localStorage.getItem('userData');
         const userRole = localStorage.getItem('userRole');
 
+        // initialise the model for enhanced calendar
+        this._initModels();
 
         // Redirect if no valid session
         if (userRole !== 'employee' || !userData) {
@@ -139,74 +141,75 @@ sap.ui.define(
         }
         this._oChangePasswordDialog.open();
       },
+
       onSubmitChangePassword: function () {
         // Ensure fragment exists
         if (!this._oChangePasswordDialog) {
-            MessageBox.error("Error: Change Password Dialog not found.");
-            return;
+          MessageBox.error("Error: Change Password Dialog not found.");
+          return;
         }
-    
+
         // ✅ Correct way to access fragment controls using Fragment.byId()
         var oCurrentPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "currentPassword");
         var oNewPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "newPassword");
         var oConfirmPassword = sap.ui.core.Fragment.byId("ChangePasswordDialog", "confirmPassword");
-    
+
         // Check if inputs were found
         if (!oCurrentPassword || !oNewPassword || !oConfirmPassword) {
-            MessageBox.error("Error: Could not find input fields.");
-            return;
+          MessageBox.error("Error: Could not find input fields.");
+          return;
         }
-    
+
         // 2. Validate inputs
         if (!oCurrentPassword.getValue() || !oNewPassword.getValue() || !oConfirmPassword.getValue()) {
-            MessageBox.error("Please fill in all fields.");
-            return;
+          MessageBox.error("Please fill in all fields.");
+          return;
         }
-    
+
         if (oNewPassword.getValue() !== oConfirmPassword.getValue()) {
-            MessageBox.error("New password and confirm password do not match.");
-            return;
+          MessageBox.error("New password and confirm password do not match.");
+          return;
         }
-    
+
         // 3. Get user data
         var oUserData = this.getView().getModel("employee").getData();
-    
+
         // 4. Call the correct endpoint with proper parameters
         fetch(`http://localhost:3000/employees/${oUserData.id}/change-password`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                CurrentPassword: oCurrentPassword.getValue(),
-                NewPassword: oNewPassword.getValue()
-            }),
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            CurrentPassword: oCurrentPassword.getValue(),
+            NewPassword: oNewPassword.getValue()
+          }),
         })
-        .then(response => {
+          .then(response => {
             if (!response.ok) {
-                return response.json().then(err => Promise.reject(err));
+              return response.json().then(err => Promise.reject(err));
             }
             return response.json();
-        })
-        .then(data => {
+          })
+          .then(data => {
             if (data.message === "Password changed successfully") {
-                MessageBox.success("Password changed successfully!", {
-                    onClose: () => {
-                        // Clear fields
-                        oCurrentPassword.setValue("");
-                        oNewPassword.setValue("");
-                        oConfirmPassword.setValue("");
-                        this._oChangePasswordDialog.close();
-                    }
-                });
+              MessageBox.success("Password changed successfully!", {
+                onClose: () => {
+                  // Clear fields
+                  oCurrentPassword.setValue("");
+                  oNewPassword.setValue("");
+                  oConfirmPassword.setValue("");
+                  this._oChangePasswordDialog.close();
+                }
+              });
             }
-        })
-        .catch(error => {
+          })
+          .catch(error => {
             console.error("Password change error:", error);
             const errorMessage = error.error || "Failed to change password. Please try again.";
             MessageBox.error(errorMessage);
-        });
-    },    
+          });
+      },
 
       onCancelChangePassword: function () {
         if (this._oChangePasswordDialog) {
@@ -214,8 +217,63 @@ sap.ui.define(
         }
       },
 
-      onViewCalendar: () => {
-        MessageBox.information("Calendar view is not implemented yet.")
+      //End of change password
+
+      //Basic Calender
+      _initModels: function () {
+        const oModel = new JSONModel({
+          leaves: [],
+          //currentDate: UI5Date.getDateInstance()
+        });
+        this.getView().setModel(oModel);
+      },
+      onOpenCalendar1: function () {
+        // Simple phase 1 implementation
+        if (!this._oCalendarDialog) {
+          Fragment.load({
+            id: this.getView().getId(),
+            name: "com.emls.view.fragments.Calendar",
+            controller: this
+          }).then(function (oDialog) {
+            this.getView().addDependent(oDialog);
+            this._oCalendarDialog = oDialog;
+            oDialog.open();
+          }.bind(this)).catch(function (err) {
+            MessageBox.error("Error loading calendar: " + err);
+          });
+        } else {
+          this._oCalendarDialog.open();
+        }
+      },
+
+      onCloseSimpleCalendar: function () {
+        if (this._oCalendarDialog) {
+          this._oCalendarDialog.close();
+        }
+      },
+
+      //open calendar
+      onOpenCalendar: function() {
+        if (!this._enhancedCalendarController) {
+          this._enhancedCalendarController = new EnhancedCalendar();
+        }
+        this._enhancedCalendarController.openEnhancedCalendar();
+      },
+      
+      // Add cleanup
+      onExit: function() {
+        if (this._enhancedCalendarController) {
+          this._enhancedCalendarController.destroy();
+        }
+      },
+      _getEnhancedCalendarController: function () {
+        if (!this._oEnhancedCalendarController) {
+          this._oEnhancedCalendarController = sap.ui.controller(
+            "com.emls.controller.EnhancedCalendar",
+            this.getView().getComponent()
+          );
+        }
+        return this._oEnhancedCalendarController;
       },
 
       onLogOut: function () {

@@ -1,0 +1,51 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:unified="sap.ui.unified"
+  xmlns:layout="sap.ui.layout">
+  
+  <Dialog
+    id="enhancedCalendarDialog"
+    title="Enhanced Leave Calendar"
+    contentWidth="800px"
+    contentHeight="700px"
+    verticalScrolling="false">
+    
+    <content>
+      <!-- Calendar Control -->
+      <unified:Calendar
+        id="enhancedLeaveCalendar"
+        intervalSelection="true"
+        select=".onCalendarSelect"
+        class="sapUiResponsiveMargin"/>
+      
+      <!-- Calendar Legend -->
+      <unified:CalendarLegend class="sapUiSmallMarginTop">
+        <unified:items>
+          <unified:CalendarLegendItem text="Current Date" type="Type06"/>
+          <unified:CalendarLegendItem text="Approved Leave" type="Type01"/>
+          <unified:CalendarLegendItem text="Pending Leave" type="Type02"/>
+          <unified:CalendarLegendItem text="Rejected Leave" type="Type03"/>
+          <unified:CalendarLegendItem text="New Leave" type="Type04"/>
+          <unified:CalendarLegendItem text="Leave Start" type="Type07"/>
+          <unified:CalendarLegendItem text="Leave End" type="Type08"/>
+        </unified:items>
+      </unified:CalendarLegend>
+
+      <!-- Active Leave Information -->
+      <layout:VerticalLayout class="sapUiResponsiveMargin">
+        <Text 
+          text="Active Leave: {/activeLeaveStartFormatted} - {/activeLeaveEndFormatted}"
+          visible="{= !!${/activeLeave}}"
+          class="sapUiSmallMarginBottom"/>
+        <Text 
+          text="Days Remaining: {/daysRemaining}"
+          visible="{= !!${/activeLeave}}"/>
+      </layout:VerticalLayout>
+    </content>
+
+    <buttons>
+      <Button text="Close" press=".onCloseEnhancedCalendar"/>
+    </buttons>
+  </Dialog>
+</core:FragmentDefinition>

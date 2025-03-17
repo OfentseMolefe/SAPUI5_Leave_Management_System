@@ -78,7 +78,7 @@ sap.ui.define(
           .catch((error) => {
             console.error("Error:", error);
             MessageBox.error("An error occurred. Please try again.");
-          });
+            });
       },
 
       loginAdmin: function (sEmail, sPassword, oDialog) {

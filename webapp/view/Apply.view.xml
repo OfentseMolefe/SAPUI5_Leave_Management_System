@@ -15,7 +15,7 @@
                     <List>
                         <StandardListItem title="My Profile" type="Active" press="onMyProfile" icon="sap-icon://employee" />
                         <StandardListItem title="Change Password" type="Active" press="onChangePassword" icon="sap-icon://key" />
-                        <StandardListItem title="View Calendar" type="Active" press="onViewCalendar" icon="sap-icon://calendar" />
+                        <StandardListItem title="View Calendar" type="Active" press="onOpenCalendar" icon="sap-icon://calendar" />
                         <StandardListItem title="Log Out" type="Active" press="onLogOut" icon="sap-icon://log" />
                     </List>
                 </content>
