@@ -10,13 +10,25 @@
                     id="leaveType"
                     items="{leaveTypes>/}"
                     forceSelection="false"
-                    selectedKey="{leaveApplication>/LeaveType}">
+                    selectedKey="{leaveApplication>/LeaveType}"
+                    change="onLeaveTypeChange">
                     <core:Item key="{leaveTypes>LeaveType}" text="{leaveTypes>LeaveType}" />
                 </Select>
+
+                <!-- Custom Leave Type Input (Initially Hidden) -->
+                <Label text="Custom Leave Type" id="customLeaveLabel" visible="false" />
+                <Input
+    id="customLeaveType"
+    value="{leaveApplication>/CustomLeaveType}"
+    placeholder="Enter Leave Name"
+    visible="{= ${leaveApplication>/LeaveType} === 'Other' }" />
+
                 <Label text="From Date" />
                 <DatePicker id="fromDate" value="{leaveApplication>/FromDate}" />
+
                 <Label text="To Date" />
                 <DatePicker id="toDate" value="{leaveApplication>/ToDate}" />
+
                 <Label text="Description" />
                 <TextArea id="description" value="{leaveApplication>/Description}" rows="4" />
             </f:content>
@@ -27,4 +39,3 @@
         </buttons>
     </Dialog>
 </core:FragmentDefinition>
-

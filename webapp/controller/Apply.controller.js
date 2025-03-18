@@ -253,15 +253,15 @@ sap.ui.define(
       },
 
       //open calendar
-      onOpenCalendar1: function() {
+      onOpenCalendar1: function () {
         if (!this._enhancedCalendarController) {
           this._enhancedCalendarController = new EnhancedCalendar();
         }
         this._enhancedCalendarController.openEnhancedCalendar();
       },
-      
+
       // Add cleanup
-      onExit: function() {
+      onExit: function () {
         if (this._enhancedCalendarController) {
           this._enhancedCalendarController.destroy();
         }
@@ -323,30 +323,56 @@ sap.ui.define(
 
       onOpenApplyLeave: function () {
         if (!this._oApplyLeave) {
-          this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.fragments.ApplyLeave", this)
-          this.getView().addDependent(this._oApplyLeave)
+            this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.fragments.ApplyLeave", this);
+            this.getView().addDependent(this._oApplyLeave);
         }
-        var oLeaveApplicationModel = this.getView().getModel("leaveApplication")
+    
+        var oLeaveApplicationModel = this.getView().getModel("leaveApplication");
+        var oLeaveTypesModel = this.getView().getModel("leaveTypes");
+    
+        // Get current leave types and add "Other" dynamically
+        var aLeaveTypes = oLeaveTypesModel.getData();
+        if (!aLeaveTypes.some(type => type.LeaveType === "Other")) {
+            aLeaveTypes.push({ LeaveType: "Other" });  // Add "Other" if it's not already present
+            oLeaveTypesModel.setData(aLeaveTypes);
+        }
+    
+        // Reset form fields
         oLeaveApplicationModel.setData({
-          LeaveType: "",
-          FromDate: null,
-          ToDate: null,
-          Description: "",
-        })
-        this._oApplyLeave.open()
-      },
+            LeaveType: "",
+            CustomLeaveType: "",
+            FromDate: null,
+            ToDate: null,
+            Description: "",
+        });
+    
+        this._oApplyLeave.open();
+    }
+    ,
 
+      // Select custom leave type
+      onLeaveTypeChange: function (oEvent) {
+        var sSelectedKey = oEvent.getSource().getSelectedKey();
+        var oView = this.getView();
+
+        var oCustomLeaveLabel = sap.ui.getCore().byId("customLeaveLabel");
+        var oCustomLeaveInput = sap.ui.getCore().byId("customLeaveInput");
+
+        var bShowCustomLeave = (sSelectedKey === "Other");
+        oCustomLeaveLabel.setVisible(bShowCustomLeave);
+        oCustomLeaveInput.setVisible(bShowCustomLeave);
+      },
+  
       onCloseApplyLeave: function () {
         this._oApplyLeave.close()
       },
 
       onSubmitLeave: function () {
-        // Get the leave application data from the model
-        var oLeaveApplicationModel = this.getView().getModel("leaveApplication")
-        var oLeaveData = oLeaveApplicationModel.getData()
-        var oUserData = this.getView().getModel("employee").getData()
+        var oLeaveApplicationModel = this.getView().getModel("leaveApplication");
+        var oLeaveData = oLeaveApplicationModel.getData();
+        var oUserData = this.getView().getModel("employee").getData();
 
-        console.log("Leave Data before submission:", oLeaveData) // Debug log
+        console.log("Leave Data before submission:", oLeaveData); // Debug log
 
         // Validate required fields
         if (
@@ -356,58 +382,58 @@ sap.ui.define(
           !oLeaveData.ToDate ||
           !oLeaveData.Description
         ) {
-          MessageBox.error("Please fill in all required fields.")
-          return
+          MessageBox.error("Please fill in all required fields.");
+          return;
         }
 
         // Validate date range
         if (oLeaveData.FromDate > oLeaveData.ToDate) {
-          MessageBox.error("From Date must be earlier than or equal to To Date.")
-          return
+          MessageBox.error("From Date must be earlier than or equal to To Date.");
+          return;
         }
 
         // Determine the leave type to be sent
-        var leaveType = oLeaveData.LeaveType === "Other" ? oLeaveData.CustomLeaveType : oLeaveData.LeaveType
+        var leaveType = oLeaveData.LeaveType === "Other" ? oLeaveData.CustomLeaveType : oLeaveData.LeaveType;
 
-        console.log("Final Leave Type to be submitted:", leaveType) // Debug log
+        console.log("Final Leave Type to be submitted:", leaveType); // Debug log
 
         // Prepare the data to be sent to the server
         var leaveRequestData = {
-          LeaveType: leaveType, // This will be the plain text of the leave type
+          LeaveType: leaveType,
           FromDate: oLeaveData.FromDate,
           ToDate: oLeaveData.ToDate,
           Description: oLeaveData.Description,
-          empid: oUserData.id,
-        }
+          empid: oUserData.id
+        };
 
-        console.log("Leave Request Data:", leaveRequestData) // Debug log
+        console.log("Leave Request Data:", leaveRequestData); // Debug log
 
         // Send the leave request to the server
         fetch("http://localhost:3000/leave", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
-          body: JSON.stringify(leaveRequestData),
+          body: JSON.stringify(leaveRequestData)
         })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Server response:", data) // Debug log
+          .then(response => response.json())
+          .then(data => {
+            console.log("Server response:", data); // Debug log
             if (data.message === "Leave request created successfully") {
               MessageBox.success("Leave application submitted successfully.", {
                 onClose: function () {
-                  this.onCloseApplyLeave()
-                  this._loadLeaveStatus()
-                }.bind(this),
-              })
+                  this.onCloseApplyLeave();
+                  this._loadLeaveStatus();
+                }.bind(this)
+              });
             } else {
-              MessageBox.error(data.message || "Failed to submit leave application. Please try again.")
+              MessageBox.error(data.message || "Failed to submit leave application. Please try again.");
             }
           })
-          .catch((error) => {
-            console.error("Error submitting leave request:", error)
-            MessageBox.error("An error occurred. Please try again.")
-          })
+          .catch(error => {
+            console.error("Error submitting leave request:", error);
+            MessageBox.error("An error occurred. Please try again.");
+          });
       },
 
       formatDate: (oDate) => {
