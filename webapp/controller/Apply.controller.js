@@ -109,7 +109,7 @@ sap.ui.define(
 
       onOpenMenu: function (oEvent) {
         if (!this._oMenu) {
-          this._oMenu = sap.ui.xmlfragment("com.emls.view.SidebarMenu", this)
+          this._oMenu = sap.ui.xmlfragment("com.emls.view.fragments.SidebarMenu", this)
           this.getView().addDependent(this._oMenu)
         }
         var oButton = oEvent.getSource()
@@ -122,7 +122,7 @@ sap.ui.define(
 
       onMyProfile: function () {
         if (!this._oProfileDialog) {
-          this._oProfileDialog = sap.ui.xmlfragment("com.emls.view.EmployeeProfile", this)
+          this._oProfileDialog = sap.ui.xmlfragment("com.emls.view.fragments.EmployeeProfile", this)
           this.getView().addDependent(this._oProfileDialog)
         }
         this._oProfileDialog.open()
@@ -136,7 +136,7 @@ sap.ui.define(
 
       onChangePassword: function () {
         if (!this._oChangePasswordDialog) {
-          this._oChangePasswordDialog = sap.ui.xmlfragment("ChangePasswordDialog", "com.emls.view.ChangePassword", this);
+          this._oChangePasswordDialog = sap.ui.xmlfragment("ChangePasswordDialog", "com.emls.view.fragments.ChangePassword", this);
           this.getView().addDependent(this._oChangePasswordDialog);
         }
         this._oChangePasswordDialog.open();
@@ -227,7 +227,7 @@ sap.ui.define(
         });
         this.getView().setModel(oModel);
       },
-      onOpenCalendar1: function () {
+      onOpenCalendar: function () {
         // Simple phase 1 implementation
         if (!this._oCalendarDialog) {
           Fragment.load({
@@ -253,7 +253,7 @@ sap.ui.define(
       },
 
       //open calendar
-      onOpenCalendar: function() {
+      onOpenCalendar1: function() {
         if (!this._enhancedCalendarController) {
           this._enhancedCalendarController = new EnhancedCalendar();
         }
@@ -298,7 +298,7 @@ sap.ui.define(
 
       onViewLeaveDetails: function () {
         if (!this._oLeaveDetails) {
-          this._oLeaveDetails = sap.ui.xmlfragment("com.emls.view.LeaveDetails", this)
+          this._oLeaveDetails = sap.ui.xmlfragment("com.emls.view.fragments.LeaveDetails", this)
           this.getView().addDependent(this._oLeaveDetails)
         }
 
@@ -323,7 +323,7 @@ sap.ui.define(
 
       onOpenApplyLeave: function () {
         if (!this._oApplyLeave) {
-          this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.ApplyLeave", this)
+          this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.fragments.ApplyLeave", this)
           this.getView().addDependent(this._oApplyLeave)
         }
         var oLeaveApplicationModel = this.getView().getModel("leaveApplication")

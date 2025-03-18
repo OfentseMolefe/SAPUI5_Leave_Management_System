@@ -167,7 +167,7 @@ sap.ui.define(
       onAddDepartment: function () {
         console.log("Opening add department dialog")
         if (!this._oAddDepartmentDialog) {
-          this._oAddDepartmentDialog = sap.ui.xmlfragment("com.emls.view.AddDepartment", this)
+          this._oAddDepartmentDialog = sap.ui.xmlfragment("com.emls.view.fragments.AddDepartment", this)
           this.getView().addDependent(this._oAddDepartmentDialog)
         }
         this._oAddDepartmentDialog.open()
@@ -222,7 +222,7 @@ sap.ui.define(
         this._loadDepartments().then(() => {
           if (!this._oManageDepartmentsDialog) {
             this._oManageDepartmentsDialog = sap.ui.xmlfragment(
-              "com.emls.view.ManageDepartments",
+              "com.emls.view.fragments.ManageDepartments",
               this
             );
             // Add dialog as dependent to inherit models
@@ -241,7 +241,7 @@ sap.ui.define(
         // Create dialog if it doesn't exist
         if (!this._oEditDepartmentDialog) {
           this._oEditDepartmentDialog = sap.ui.xmlfragment(
-            "com.emls.view.EditDepartment",  // Your fragment name
+            "com.emls.view.fragments.EditDepartment",  // Your fragment name
             this
           );
           this.getView().addDependent(this._oEditDepartmentDialog);
@@ -366,7 +366,7 @@ sap.ui.define(
         ]).then(([empIdData, _]) => {
           if (!this._oAddEmployeeDialog) {
             this._oAddEmployeeDialog = sap.ui.xmlfragment(
-              "com.emls.view.AddEmployee",
+              "com.emls.view.fragments.AddEmployee",
               this
             );
             this.getView().addDependent(this._oAddEmployeeDialog);
@@ -460,7 +460,7 @@ sap.ui.define(
           .then(() => {
             if (!this._oManageEmployeesDialog) {
               this._oManageEmployeesDialog = sap.ui.xmlfragment(
-                "com.emls.view.ManageEmployees",
+                "com.emls.view.fragments.ManageEmployees",
                 this
               );
               this.getView().addDependent(this._oManageEmployeesDialog);
@@ -482,7 +482,7 @@ sap.ui.define(
         this._loadDepartments().then(() => {
           if (!this._oEditEmployeeDialog) {
             this._oEditEmployeeDialog = sap.ui.xmlfragment(
-              "com.emls.view.EditEmployee",
+              "com.emls.view.fragments.EditEmployee",
               this
             );
             this.getView().addDependent(this._oEditEmployeeDialog);
@@ -629,7 +629,7 @@ sap.ui.define(
       // In _showRemarksDialog function:
       _showRemarksDialog: function () {
         if (!this._oRemarksDialog) {
-          this._oRemarksDialog = sap.ui.xmlfragment("com.emls.view.AdminRemarks", this);
+          this._oRemarksDialog = sap.ui.xmlfragment("com.emls.view.fragments.AdminRemarks", this);
           console.log("Remarks dialog created:", this._oRemarksDialog);
           this.getView().addDependent(this._oRemarksDialog);
         }

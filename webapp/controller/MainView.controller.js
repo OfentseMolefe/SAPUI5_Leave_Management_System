@@ -17,7 +17,7 @@ sap.ui.define(
         if (!this.pLoginDialog) {
           this.pLoginDialog = Fragment.load({
             id: oView.getId(),
-            name: "com.emls.view.Login",
+            name: "com.emls.view.fragments.Login",
             controller: this,
           }).then((oDialog) => {
             oView.addDependent(oDialog);
