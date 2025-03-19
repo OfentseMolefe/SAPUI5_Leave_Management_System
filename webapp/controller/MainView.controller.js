@@ -5,6 +5,7 @@ sap.ui.define(
 
       onInit: function () {
         this.setupSessionTimer();
+        this.setupActivityListeners();
       },
 
       onApplyLeavePress: function () {
@@ -122,7 +123,7 @@ sap.ui.define(
         var that = this;
         this._sessionTimeout = setTimeout(function () {
           that.autoLogout();
-        }, 15 * 60 * 1000);
+        }, 1 * 60 * 1000);
       },
 
       resetSessionTimer: function () {
@@ -130,12 +131,35 @@ sap.ui.define(
         this.setupSessionTimer();
       },
 
+      setupActivityListeners: function () {
+        document.addEventListener("mousemove", this.resetSessionTimer.bind(this));
+        document.addEventListener("keydown", this.resetSessionTimer.bind(this));
+      },
+
       autoLogout: function () {
-        MessageBox.warning("Session expired. You will be logged out.", {
+        var that = this;
+        MessageBox.warning("Session expired due to inactivity. You will be logged out.", {
           onClose: function () {
-            sap.ui.getCore().byId("appComponent").getController().onLogOut();
+             that.onLogOut();
           },
         });
       },
+
+      onLogOut: function () {
+        console.log("🔹 Auto Logout triggered");
+
+        var oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+
+        // Remove stored user/admin session data
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("adminData");
+        localStorage.removeItem("adminRole");
+
+        clearTimeout(this._sessionTimeout);
+
+        // 🔹 Redirects to MainView (Login Page)
+        oRouter.navTo("RouteMainView");
+      }
     })
 );
