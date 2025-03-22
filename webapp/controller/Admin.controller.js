@@ -5,6 +5,14 @@ sap.ui.define(
       onInit: function () {
         console.log("Admin controller initialized")
 
+        // Initialize model properties for visibility toggles
+        this.getView().setModel(new sap.ui.model.json.JSONModel({
+          approvedExpanded: false,
+          approvedLength: 0,
+          rejectedExpanded: false,
+          rejectedLength: 0
+      }), "ui");
+
         // Initialize the JSON model without sample data
         var oModel = new JSONModel({
           NewRequests: [],
@@ -35,6 +43,23 @@ sap.ui.define(
         this._loadDepartments();
       },
 
+      onToggleApproved: function() {
+        const uiModel = this.getView().getModel("ui");
+        const expanded = !uiModel.getProperty("/approvedExpanded");
+        const totalItems = this.getView().getModel().getProperty("/ApprovedRequests").length;
+        
+        uiModel.setProperty("/approvedExpanded", expanded);
+        uiModel.setProperty("/approvedLength", expanded ? totalItems : 1);
+    },
+    
+    onToggleRejected: function() {
+        const uiModel = this.getView().getModel("ui");
+        const expanded = !uiModel.getProperty("/rejectedExpanded");
+        const totalItems = this.getView().getModel().getProperty("/RejectedRequests").length;
+        
+        uiModel.setProperty("/rejectedExpanded", expanded);
+        uiModel.setProperty("/rejectedLength", expanded ? totalItems : 1);
+    },
       // Load leave requests from server
       _loadLeaveRequests: function () {
         // Fetch all leave requests
@@ -304,10 +329,10 @@ sap.ui.define(
       },
 
       // Save edited department
-      onSaveEditDepartment: function() {
+      onSaveEditDepartment: function () {
         const oDialog = this._oEditDepartmentDialog;
         const oData = oDialog.getModel().getData();
-      
+
         // Validation
         const aErrors = [];
         if (!oData.DepartmentName?.trim()) {
@@ -316,15 +341,15 @@ sap.ui.define(
         if (!oData.DepartmentShortName?.trim()) {
           aErrors.push("Department Short Name");
         }
-      
+
         if (aErrors.length > 0) {
           MessageBox.error(`Required fields missing:\n${aErrors.join("\n")}`);
           return;
         }
-      
+
         // Show loading indicator
         oDialog.setBusy(true);
-        
+
         fetch(`http://localhost:3000/departments/${oData.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -334,22 +359,22 @@ sap.ui.define(
             DepartmentCode: oData.DepartmentCode
           })
         })
-        .then(response => {
-          if (!response.ok) throw new Error("Server returned error");
-          return response.json();
-        })
-        .then(() => {
-          MessageBox.success("Department updated successfully");
-          this._loadDepartments();
-          oDialog.close();
-        })
-        .catch(error => {
-          console.error("Update error:", error);
-          MessageBox.error("Failed to update department. Please try again.");
-        })
-        .finally(() => {
-          oDialog.setBusy(false); // Hide loading indicator
-        });
+          .then(response => {
+            if (!response.ok) throw new Error("Server returned error");
+            return response.json();
+          })
+          .then(() => {
+            MessageBox.success("Department updated successfully");
+            this._loadDepartments();
+            oDialog.close();
+          })
+          .catch(error => {
+            console.error("Update error:", error);
+            MessageBox.error("Failed to update department. Please try again.");
+          })
+          .finally(() => {
+            oDialog.setBusy(false); // Hide loading indicator
+          });
       },
 
       onCancelEditDepartment: function () {
@@ -547,7 +572,7 @@ sap.ui.define(
       // Logout function
       onLogOut: function () {
         console.log("Logout requested");
-        
+
         MessageBox.confirm("Are you sure you want to log out?", {
           onClose: function (oAction) {
             if (oAction === MessageBox.Action.OK) {
@@ -556,7 +581,7 @@ sap.ui.define(
               localStorage.removeItem("userRole");
               localStorage.removeItem("adminData");
               localStorage.removeItem("adminRole");
-              
+
               clearTimeout(this._sessionTimeout);
 
               oRouter.navTo("RouteMainView");

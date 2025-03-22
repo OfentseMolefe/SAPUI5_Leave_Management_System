@@ -1,0 +1,23 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog title="Edit Leave Request">
+        <content>
+            
+            <DatePicker 
+                value="{leaveDetails>FromDate}" 
+                valueFormat="yyyy-MM-dd"
+                displayFormat="medium"
+                class="sapUiSmallMarginBottom"
+                placeholder="From date"/>
+            <DatePicker 
+                value="{leaveDetails>ToDate}" 
+                valueFormat="yyyy-MM-dd"
+                displayFormat="medium"
+                class="sapUiSmallMarginBottom"
+                placeholder="To date"/>
+        </content>
+        <buttons>
+            <Button text="Save" press="onSaveEdit" type="Emphasized"/>
+            <Button text="Cancel" press="onCancelEdit"/>
+        </buttons>
+    </Dialog>
+</core:FragmentDefinition>

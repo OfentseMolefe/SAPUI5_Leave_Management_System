@@ -44,6 +44,7 @@ sap.ui.define(
 
       },
 
+
       _loadEmployeeData: function () {
         var oUserData = this.getOwnerComponent().getModel("userData").getData()
         this.getView().setModel(new JSONModel(oUserData), "employee")
@@ -88,13 +89,14 @@ sap.ui.define(
       }
       ,
       formatLeaveStatus: function (status) {
-        switch (status) {
-          case 0: return "Submitted";
-          case 1: return "Approved";
-          case 2: return "Pending Approval";
-          case 3: return "Rejected";
-          default: return "No Active Leave";
-        }
+        const statusMap = {
+          0: "Submitted",
+          1: "Approved",
+          2: "Pending Approval",
+          3: "Rejected",
+          4: "Revoked" // Add revoked status
+        };
+        return statusMap[status] || "Unknown Status";
       },
 
       formatStatusIcon: function (status) {
@@ -216,9 +218,6 @@ sap.ui.define(
           this._oChangePasswordDialog.close();
         }
       },
-
-      //End of change password
-
       //Basic Calender
       _initModels: function () {
         const oModel = new JSONModel({
@@ -323,32 +322,32 @@ sap.ui.define(
 
       onOpenApplyLeave: function () {
         if (!this._oApplyLeave) {
-            this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.fragments.ApplyLeave", this);
-            this.getView().addDependent(this._oApplyLeave);
+          this._oApplyLeave = sap.ui.xmlfragment("com.emls.view.fragments.ApplyLeave", this);
+          this.getView().addDependent(this._oApplyLeave);
         }
-    
+
         var oLeaveApplicationModel = this.getView().getModel("leaveApplication");
         var oLeaveTypesModel = this.getView().getModel("leaveTypes");
-    
+
         // Get current leave types and add "Other" dynamically
         var aLeaveTypes = oLeaveTypesModel.getData();
         if (!aLeaveTypes.some(type => type.LeaveType === "Other")) {
-            aLeaveTypes.push({ LeaveType: "Other" });  // Add "Other" if it's not already present
-            oLeaveTypesModel.setData(aLeaveTypes);
+          aLeaveTypes.push({ LeaveType: "Other" });  // Add "Other" if it's not already present
+          oLeaveTypesModel.setData(aLeaveTypes);
         }
-    
+
         // Reset form fields
         oLeaveApplicationModel.setData({
-            LeaveType: "",
-            CustomLeaveType: "",
-            FromDate: null,
-            ToDate: null,
-            Description: "",
+          LeaveType: "",
+          CustomLeaveType: "",
+          FromDate: null,
+          ToDate: null,
+          Description: "",
         });
-    
+
         this._oApplyLeave.open();
-    }
-    ,
+      }
+      ,
 
       // Select custom leave type
       onLeaveTypeChange: function (oEvent) {
@@ -362,7 +361,7 @@ sap.ui.define(
         oCustomLeaveLabel.setVisible(bShowCustomLeave);
         oCustomLeaveInput.setVisible(bShowCustomLeave);
       },
-  
+
       onCloseApplyLeave: function () {
         this._oApplyLeave.close()
       },
@@ -442,6 +441,113 @@ sap.ui.define(
           return oDateFormat.format(oDate)
         }
         return ""
+      },
+      // Edit and revork 
+
+      onRevokeLeave: function (oEvent) {
+        const oContext = oEvent.getSource().getBindingContext("leaveDetails");
+        const oLeave = oContext.getObject();
+
+        MessageBox.confirm("Are you sure you want to revoke this leave request?", {
+          actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+          onClose: sAction => {
+            if (sAction === MessageBox.Action.YES) {
+              fetch(`http://localhost:3000/leave/${oLeave.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ Status: 4 }) // 4 = Revoked
+              })
+                .then(() => this._refreshLeaveDetails())
+                .catch(error => MessageBox.error("Revoke failed"));
+            }
+          }
+        });
+      },
+
+      onEditLeave: function (oEvent) {
+        const oContext = oEvent.getSource().getBindingContext("leaveDetails");
+        this._oLeavePath = oContext.getPath(); // Store path for save operation
+
+        if (!this._oEditDialog) {
+          Fragment.load({
+            name: "com.emls.view.fragments.EditLeave",
+            controller: this
+          }).then(oDialog => {
+            this._oEditDialog = oDialog;
+            this.getView().addDependent(oDialog);
+            oDialog.bindElement({
+              path: this._oLeavePath,
+              model: "leaveDetails"
+            });
+            oDialog.open();
+          });
+        } else {
+          this._oEditDialog.bindElement({
+            path: this._oLeavePath,
+            model: "leaveDetails"
+          });
+          this._oEditDialog.open();
+        }
+      },
+
+      onSaveEdit: function () {
+        const oModel = this.getView().getModel("leaveDetails");
+        const oData = oModel.getProperty(this._oLeavePath);
+
+        fetch(`http://localhost:3000/leave/${oData.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            FromDate: oData.FromDate,
+            ToDate: oData.ToDate
+          })
+        })
+          .then(() => {
+            oModel.refresh();
+            this._oEditDialog.close();
+          })
+          .catch(error => MessageBox.error("Update failed"));
+      },
+
+      onCancelEdit: function () {
+        this._oEditDialog.close();
+      },
+      _refreshLeaveDetails: function () {
+        const oUserData = this.getView().getModel("employee").getData();
+        fetch(`http://localhost:3000/leave/${oUserData.id}`)
+          .then(response => response.json())
+          .then(data => {
+            this.getView().getModel("leaveDetails").setData(data);
+          });
+      },
+
+      // Add to controller formatters
+      isActionAllowed: function (sCreatedDate) {
+        console.log("CreatedDate value:", sCreatedDate);
+        if (!sCreatedDate) return false;
+        try {
+          const oNow = new Date();
+          const oCreatedDate = new Date(sCreatedDate);
+          return (oNow - oCreatedDate) <= 172800000; // 2 days in milliseconds
+        } catch (e) {
+          console.error("Date error:", e);
+          return false;
+        }
+      },
+
+      isRevokeVisible: function (iStatus, sCreatedDate) {
+        return iStatus === 0 && this.isActionAllowed(sCreatedDate);
+      },
+
+      formatters: {
+        isActionAllowed: function (sCreatedDate) {
+          console.log("CreatedDate value:", sCreatedDate);
+          if (!sCreatedDate) return false;
+          const oNow = new Date();
+          const oCreatedDate = new Date(sCreatedDate);
+          const iDiffHours = Math.abs(oNow - oCreatedDate) / 36e5; // Hours difference
+          return iDiffHours <= 48; // 48 hours = 2 days
+        }
       },
     }),
 )

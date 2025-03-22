@@ -123,7 +123,7 @@ sap.ui.define(
         var that = this;
         this._sessionTimeout = setTimeout(function () {
           that.autoLogout();
-        }, 1 * 60 * 1000);
+        }, 1* 60 * 1000);
       },
 
       resetSessionTimer: function () {
