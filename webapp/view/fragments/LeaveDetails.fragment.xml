@@ -37,7 +37,7 @@
                       }" />
                         <Text text="{leaveDetails>AdminRemark}" />
                         <HBox>
-                            <Button icon="sap-icon://sys-cancel" press="onRevokeLeave" visible="{
+                            <Button icon="sap-icon://sys-cancel" press="onRevokeLeave" type="Reject"  visible="{
                                     parts: [
                                         {path: 'leaveDetails>Status'},
                                         {path: 'leaveDetails>CreatedDate'}
@@ -45,7 +45,7 @@
                                    formatter: '.isRevokeVisible'
                                 }"/>
 
-                            <Button icon="sap-icon://edit" press="onEditLeave" visible="{
+                            <Button icon="sap-icon://edit" press="onEditLeave" class="sapUiSmallMarginBegin" visible="{
                                     parts: [
                                         {path: 'leaveDetails>Status'},
                                         {path: 'leaveDetails>CreatedDate'}
