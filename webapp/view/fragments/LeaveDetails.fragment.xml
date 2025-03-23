@@ -1,7 +1,10 @@
 <core:FragmentDefinition xmlns="sap.m"
     xmlns:core="sap.ui.core">
     <Dialog title="Leave Details" contentWidth="600px">
-        <Table items="{leaveDetails>/}" noDataText="No leave requests found">
+        <Table items="{
+            path: 'leaveDetails>/',
+            model: 'leaveDetails'
+          }" noDataText="No leave requests found">
             <columns>
                 <Column>
                     <Text text="Leave Type" />
@@ -26,57 +29,33 @@
                 <ColumnListItem>
                     <cells>
                         <Text text="{leaveDetails>LeaveType}" />
-                        <Text text="{
-                          path: 'leaveDetails>FromDate',
-                          type: 'sap.ui.model.type.Date',
-                          formatOptions: {
-                              style: 'medium',
-                              source: {
-                                  pattern: 'yyyy-MM-dd'
-                              }
-                          }
-                      }" />
-                        <Text text="{
-                          path: 'leaveDetails>ToDate',
-                          type: 'sap.ui.model.type.Date',
-                          formatOptions: {
-                              style: 'medium',
-                              source: {
-                                  pattern: 'yyyy-MM-dd'
-                              }
-                          }
-                      }" />
+                        <Text text="{parts: [{path: 'leaveDetails>FromDate'}], formatter: '.formatDisplayDate'}" />
+                        <Text text="{parts: [{path: 'leaveDetails>ToDate'}], formatter: '.formatDisplayDate'}" />
                         <Text text="{
                           path: 'leaveDetails>Status',
                           formatter: '.formatLeaveStatus'
                       }" />
                         <Text text="{leaveDetails>AdminRemark}" />
-                            <HBox>
-                                <Button 
-                                icon="sap-icon://sys-cancel"
-                                press="onRevokeLeave" 
-                                visible="{
+                        <HBox>
+                            <Button icon="sap-icon://sys-cancel" press="onRevokeLeave" visible="{
                                     parts: [
                                         {path: 'leaveDetails>Status'},
                                         {path: 'leaveDetails>CreatedDate'}
                                     ],
-                                  //  formatter: '.isRevokeVisible'
+                                   formatter: '.isRevokeVisible'
                                 }"/>
-                                
-                            <Button 
-                                icon="sap-icon://edit" 
-                                press="onEditLeave" 
-                                visible="{
+
+                            <Button icon="sap-icon://edit" press="onEditLeave" visible="{
                                     parts: [
                                         {path: 'leaveDetails>Status'},
                                         {path: 'leaveDetails>CreatedDate'}
                                     ],
-                                  //  formatter: '.isRevokeVisible'
+                                    formatter: '.isRevokeVisible'
                                 }"/>
-                            </HBox>
+                        </HBox>
                     </cells>
                 </ColumnListItem>
-                
+
             </items>
         </Table>
         <buttons>

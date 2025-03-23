@@ -10,6 +10,8 @@ sap.ui.define(
   (Controller, MessageBox, Fragment, DateFormat, Calendar, JSONModel) =>
     Controller.extend("com.emls.controller.Apply", {
       onInit: function () {
+        //create empty JSONModel
+        this.getView().setModel(new JSONModel(), "leaveDetails");
         // Check for existing session
         const userData = localStorage.getItem('userData');
         const userRole = localStorage.getItem('userRole');
@@ -297,23 +299,24 @@ sap.ui.define(
 
       onViewLeaveDetails: function () {
         if (!this._oLeaveDetails) {
-          this._oLeaveDetails = sap.ui.xmlfragment("com.emls.view.fragments.LeaveDetails", this)
-          this.getView().addDependent(this._oLeaveDetails)
+          this._oLeaveDetails = sap.ui.xmlfragment("com.emls.view.fragments.LeaveDetails", this);
+          this.getView().addDependent(this._oLeaveDetails);
         }
 
-        var oUserData = this.getView().getModel("employee").getData()
+        const oUserData = this.getView().getModel("employee").getData();
 
         fetch(`http://localhost:3000/leave/${oUserData.id}`)
           .then((response) => response.json())
           .then((data) => {
-            var oLeaveDetails = new JSONModel(data)
-            this._oLeaveDetails.setModel(oLeaveDetails, "leaveDetails")
-            this._oLeaveDetails.open()
+            // Directly use server data without transformation
+            const oLeaveDetails = new JSONModel(data);
+            this.getView().setModel(oLeaveDetails, "leaveDetails");
+            this._oLeaveDetails.open();
           })
           .catch((error) => {
-            console.error("Error:", error)
-            MessageBox.error("Failed to fetch leave details. Please try again.")
-          })
+            console.error("Error:", error);
+            MessageBox.error("Failed to fetch leave details. Please try again.");
+          });
       },
 
       onCloseLeaveDetails: function () {
@@ -367,8 +370,30 @@ sap.ui.define(
       },
 
       onSubmitLeave: function () {
-        var oLeaveApplicationModel = this.getView().getModel("leaveApplication");
-        var oLeaveData = oLeaveApplicationModel.getData();
+
+        const oLeaveData = this.getView().getModel("leaveApplication").getData();
+
+        // Date validation
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);  // Normalize to day start
+
+        const fromDate = new Date(oLeaveData.FromDate);
+        fromDate.setHours(0, 0, 0, 0);
+
+        const toDate = new Date(oLeaveData.ToDate);
+        toDate.setHours(0, 0, 0, 0);
+
+        // Validate dates
+        if (fromDate < today) {
+          MessageBox.error("From Date cannot be in the past");
+          return;
+        }
+
+        if (toDate < fromDate) {
+          MessageBox.error("To Date cannot be before From Date");
+          return;
+        }
+
         var oUserData = this.getView().getModel("employee").getData();
 
         console.log("Leave Data before submission:", oLeaveData); // Debug log
@@ -396,11 +421,16 @@ sap.ui.define(
 
         console.log("Final Leave Type to be submitted:", leaveType); // Debug log
 
-        // Prepare the data to be sent to the server
-        var leaveRequestData = {
+        // Convert dates to YYYY-MM-DD format
+        const formatDate = (date) => {
+          if (!date) return null;
+          return new Date(date).toISOString().split('T')[0];
+        };
+
+        const leaveRequestData = {
           LeaveType: leaveType,
-          FromDate: oLeaveData.FromDate,
-          ToDate: oLeaveData.ToDate,
+          FromDate: formatDate(oLeaveData.FromDate),
+          ToDate: formatDate(oLeaveData.ToDate),
           Description: oLeaveData.Description,
           empid: oUserData.id
         };
@@ -436,11 +466,23 @@ sap.ui.define(
       },
 
       formatDate: (oDate) => {
-        if (oDate) {
-          var oDateFormat = DateFormat.getDateInstance({ style: "medium" })
-          return oDateFormat.format(oDate)
+        try {
+          if (!oDate) return "";
+          const oDateFormat = DateFormat.getDateInstance({ style: "medium" });
+
+          // Handle both Date objects and ISO strings
+          const dateObj = typeof oDate === 'string' ? new Date(oDate) : oDate;
+
+          if (isNaN(dateObj.getTime())) {
+            console.error("Invalid date passed to formatter:", oDate);
+            return "Invalid Date";
+          }
+
+          return oDateFormat.format(dateObj);
+        } catch (error) {
+          console.error("Date formatting error:", error);
+          return "Date Error";
         }
-        return ""
       },
       // Edit and revork 
 
@@ -463,78 +505,238 @@ sap.ui.define(
           }
         });
       },
+      // Edit leave
 
-      onEditLeave: function (oEvent) {
-        const oContext = oEvent.getSource().getBindingContext("leaveDetails");
-        this._oLeavePath = oContext.getPath(); // Store path for save operation
+      onSaveEdit: function () {
+        try {
+          // Debug 1: Check if path exists
 
-        if (!this._oEditDialog) {
-          Fragment.load({
-            name: "com.emls.view.fragments.EditLeave",
-            controller: this
-          }).then(oDialog => {
-            this._oEditDialog = oDialog;
-            this.getView().addDependent(oDialog);
-            oDialog.bindElement({
-              path: this._oLeavePath,
-              model: "leaveDetails"
+          const oModel2 = this.getView().getModel("leaveDetails");
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const editedFromDate = new Date(oModel2.FromDate);
+          editedFromDate.setHours(0, 0, 0, 0);
+
+          if (editedFromDate < today) {
+            MessageBox.error("Cannot edit past leave requests");
+            return;
+          }
+
+          if (!oModel2) {
+            console.error("Save Error: leaveDetails model missing in view");
+            console.log("Available models:", this.getView().getModelNames());
+            MessageBox.error("Data model error - please reopen leave details");
+            return;
+          }
+          console.log("Saving path:", this._oLeavePath);
+
+          // Debug 2: Check model existence
+          const oModel = this.getView().getModel("leaveDetails");
+          if (!oModel) {
+            console.error("Save Error: leaveDetails model not found");
+            MessageBox.error("Data model error - please refresh the page");
+            return;
+          }
+
+          // Debug 3: Check data retrieval
+          const oData = oModel.getProperty(this._oLeavePath);
+          if (!oData) {
+            console.error("Save Error: No data at path:", this._oLeavePath);
+            console.log("Model data:", oModel.getData());
+            MessageBox.error("Could not find leave request data");
+            return;
+          }
+          console.log("Edit Data:", JSON.stringify(oData, null, 2));
+
+          // Validate dates
+          const parseDate = (dateValue) => {
+            // Handle both Date objects and strings
+            if (dateValue instanceof Date) {
+              if (isNaN(dateValue)) throw new Error("Invalid Date object");
+              return dateValue;
+            }
+
+            if (typeof dateValue === 'string') {
+              if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                throw new Error(`Invalid date string format: ${dateValue}`);
+              }
+              const parts = dateValue.split('-');
+              return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            throw new Error(`Unsupported date type: ${typeof dateValue}`);
+          };
+          // Debug 4: API call
+          console.log("Sending update for ID:", oData.id, "with:", {
+            FromDate: oData.FromDate,
+            ToDate: oData.ToDate
+          });
+
+          fetch(`http://localhost:3000/leave/${oData.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              FromDate: oData.FromDate,
+              ToDate: oData.ToDate
+            })
+          })
+            .then(response => {
+              // Debug 5: Check response status
+              console.log("Response status:", response.status);
+              if (!response.ok) {
+                return response.text().then(text => {
+                  throw new Error(`Server error: ${response.status} - ${text}`);
+                });
+              }
+              return response.json();
+            })
+            .then(() => {
+              // Debug 6: Refresh data
+              console.log("Update successful, refreshing model...");
+              oModel.refresh(true);
+              MessageBox.success("Leave dates updated successfully");
+              this._oEditDialog.close();
+            })
+            .catch(error => {
+              // Debug 7: Catch errors
+              console.error("Update error:", error);
+              MessageBox.error(`Update failed: ${error.message}`);
             });
-            oDialog.open();
-          });
-        } else {
-          this._oEditDialog.bindElement({
-            path: this._oLeavePath,
-            model: "leaveDetails"
-          });
-          this._oEditDialog.open();
+
+        } catch (error) {
+          // Debug 8: Catch sync errors
+          console.error("Critical save error:", error);
+          MessageBox.error("A critical error occurred. Please check the console.");
         }
       },
 
-      onSaveEdit: function () {
-        const oModel = this.getView().getModel("leaveDetails");
-        const oData = oModel.getProperty(this._oLeavePath);
+      onEditLeave: function (oEvent) {
+        try {
+          const oContext = oEvent.getSource().getBindingContext("leaveDetails");
+          if (!oContext) {
+            console.error("Edit Error: No binding context");
+            MessageBox.error("Could not find leave request data");
+            return;
+          }
 
-        fetch(`http://localhost:3000/leave/${oData.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            FromDate: oData.FromDate,
-            ToDate: oData.ToDate
-          })
-        })
-          .then(() => {
-            oModel.refresh();
-            this._oEditDialog.close();
-          })
-          .catch(error => MessageBox.error("Update failed"));
+          this._oLeavePath = oContext.getPath();
+          console.log("Edit Path:", this._oLeavePath);
+
+          const oModel = this.getView().getModel("leaveDetails");
+          if (!oModel) {
+            console.error("Edit Error: leaveDetails model missing");
+            return;
+          }
+
+          if (!this._oEditDialog) {
+            Fragment.load({
+              name: "com.emls.view.fragments.EditLeave",
+              controller: this
+            }).then(oDialog => {
+              this._oEditDialog = oDialog;
+              this.getView().addDependent(oDialog);
+              console.log("Dialog created, binding element...");
+
+              // Debug 9: Verify binding
+              oDialog.bindElement({
+                path: this._oLeavePath,
+                model: "leaveDetails"
+              });
+              console.log("Binding successful, opening dialog...");
+              oDialog.open();
+            }).catch(error => {
+              console.error("Dialog load error:", error);
+            });
+          } else {
+            console.log("Reusing existing dialog");
+            this._oEditDialog.bindElement({
+              path: this._oLeavePath,
+              model: "leaveDetails"
+            });
+            this._oEditDialog.open();
+          }
+        } catch (error) {
+          console.error("Edit Error:", error);
+          MessageBox.error("Failed to open editor");
+        }
       },
 
+      onDatePickerChange: function (oEvent) {
+        const datePicker = oEvent.getSource();
+        const binding = datePicker.getBinding("value");
+
+        // Force format update
+        if (binding && binding.getValue()) {
+          const sValue = binding.getExternalValue();
+          datePicker.setValue(sValue);
+        }
+      },
+
+      formatDisplayDate: function (dateString) {
+        if (!dateString) return "";
+        try {
+          // Handle pure date strings (YYYY-MM-DD)
+          const dateObj = new Date(dateString);
+          return DateFormat.getDateInstance({ style: "medium" }).format(dateObj);
+        } catch (e) {
+          console.error("Date format error:", dateString, e);
+          return "Invalid Date";
+        }
+      },
+      // Get minimum date for DatePicker
+      getMinDate: function () {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        return date;
+      },
+
+      // Handle date changes
+      onDateChange: function (oEvent) {
+        const datePicker = oEvent.getSource();
+        const date = datePicker.getDateValue();
+
+        // Clear if invalid
+        if (isNaN(date.getTime())) {
+          datePicker.setValue("");
+          MessageBox.error("Please select a valid date");
+        }
+      },
       onCancelEdit: function () {
         this._oEditDialog.close();
       },
+
       _refreshLeaveDetails: function () {
         const oUserData = this.getView().getModel("employee").getData();
         fetch(`http://localhost:3000/leave/${oUserData.id}`)
           .then(response => response.json())
           .then(data => {
-            this.getView().getModel("leaveDetails").setData(data);
+            // Normalize dates
+            const normalized = data.map(item => ({
+              ...item,
+              FromDate: item.FromDate.split('T')[0],
+              ToDate: item.ToDate.split('T')[0]
+            }));
+            this.getView().getModel("leaveDetails").setData(normalized);
           });
       },
 
       // Add to controller formatters
       isActionAllowed: function (sCreatedDate) {
-        console.log("CreatedDate value:", sCreatedDate);
         if (!sCreatedDate) return false;
         try {
+          // Extract date part from ISO string
+          const datePart = sCreatedDate.split('T')[0];
+          const oCreatedDate = new Date(datePart);
           const oNow = new Date();
-          const oCreatedDate = new Date(sCreatedDate);
+          oNow.setHours(0, 0, 0, 0);
           return (oNow - oCreatedDate) <= 172800000; // 2 days in milliseconds
         } catch (e) {
           console.error("Date error:", e);
           return false;
         }
       },
-
       isRevokeVisible: function (iStatus, sCreatedDate) {
         return iStatus === 0 && this.isActionAllowed(sCreatedDate);
       },

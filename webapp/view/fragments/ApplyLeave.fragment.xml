@@ -1,33 +1,27 @@
-<core:FragmentDefinition
-    xmlns="sap.m"
+<core:FragmentDefinition xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:f="sap.ui.layout.form">
     <Dialog title="Apply for Leave" contentWidth="400px">
         <f:SimpleForm editable="true" layout="ResponsiveGridLayout">
             <f:content>
                 <Label text="Leave Type" />
-                <Select
-                    id="leaveType"
-                    items="{leaveTypes>/}"
-                    forceSelection="false"
-                    selectedKey="{leaveApplication>/LeaveType}"
-                    change="onLeaveTypeChange">
+                <Select id="leaveType" items="{leaveTypes>/}" forceSelection="false" selectedKey="{leaveApplication>/LeaveType}" change="onLeaveTypeChange">
                     <core:Item key="{leaveTypes>LeaveType}" text="{leaveTypes>LeaveType}" />
                 </Select>
 
                 <!-- Custom Leave Type Input (Initially Hidden) -->
                 <Label text="Custom Leave Type" id="customLeaveLabel" visible="false" />
-                <Input
-    id="customLeaveType"
-    value="{leaveApplication>/CustomLeaveType}"
-    placeholder="Enter Leave Name"
-    visible="{= ${leaveApplication>/LeaveType} === 'Other' }" />
+                <Input id="customLeaveType" value="{leaveApplication>/CustomLeaveType}" placeholder="Enter Leave Name" visible="{= ${leaveApplication>/LeaveType} === 'Other' }" />
 
                 <Label text="From Date" />
-                <DatePicker id="fromDate" value="{leaveApplication>/FromDate}" />
+                <DatePicker id="fromDate" value="{path: 'leaveApplication>/FromDate', type: 'sap.ui.model.type.Date'}" displayFormat="short" valueFormat="yyyy-MM-dd" 
+                minDate="{ 
+                    path: 'leaveApplication>/currentDate',
+                    formatter: '.getMinDate'
+                }" change="onDateChange"/>
 
                 <Label text="To Date" />
-                <DatePicker id="toDate" value="{leaveApplication>/ToDate}" />
+                <DatePicker id="toDate" value="{path: 'leaveApplication>/ToDate', type: 'sap.ui.model.type.Date'}" displayFormat="short" valueFormat="yyyy-MM-dd" minDate="{path: 'leaveApplication>/FromDate'}" change="onDateChange"/>
 
                 <Label text="Description" />
                 <TextArea id="description" value="{leaveApplication>/Description}" rows="4" />
